@@ -108,7 +108,7 @@ static int gpio_keys_interrupt_configure(const struct gpio_dt_spec *gpio_spec,
 
 	cb->zephyr_code = zephyr_code;
 	cb->pin_state = -1;
-	flags = GPIO_INT_EDGE_BOTH & ~GPIO_INT_MODE_DISABLED;
+	flags = GPIO_INT_LEVELS_LOGICAL & ~GPIO_INT_MODE_DISABLED;
 
 	LOG_DBG("%s [0x%p, %d]", __func__, gpio_spec->port, gpio_spec->pin);
 
