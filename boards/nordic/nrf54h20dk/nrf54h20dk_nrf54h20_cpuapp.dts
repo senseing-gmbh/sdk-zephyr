@@ -7,9 +7,7 @@
 /dts-v1/;
 
 #include <nordic/nrf54h20_cpuapp.dtsi>
-#include "nrf54h20dk_nrf54h20-memory_map.dtsi"
-#include "nrf54h20dk_nrf54h20-ipc_conf.dtsi"
-#include "nrf54h20dk_nrf54h20-pinctrl.dtsi"
+#include "nrf54h20dk_nrf54h20-common.dtsi"
 #include "nrf54h20dk_bicr.dtsi"
 
 /delete-node/ &cpurad_cpusys_ipc;
@@ -25,14 +23,10 @@
 		zephyr,flash = &mram1x;
 		zephyr,sram = &cpuapp_data;
 		zephyr,shell-uart = &uart136;
-<<<<<<< HEAD
-		zephyr,bt-hci-ipc = &ipc0;
-=======
 		zephyr,ieee802154 = &cpuapp_ieee802154;
-		zephyr,bt-hci-ipc = &ipc0;
+		zephyr,bt-hci = &bt_hci_ipc0;
 		nordic,802154-spinel-ipc = &ipc0;
 		zephyr,canbus = &can120;
->>>>>>> origin/v3.6.99-ncs2-cetus-1
 		zephyr,entropy = &prng;
 	};
 
@@ -41,12 +35,8 @@
 		led1 = &led1;
 		led2 = &led2;
 		led3 = &led3;
-<<<<<<< HEAD
-		pwm-led0 = &pwm_led0;
-=======
 		resetinfo = &cpuapp_resetinfo;
 		pwm-led0 = &pwm_led2;
->>>>>>> origin/v3.6.99-ncs2-cetus-1
 		sw0 = &button0;
 		sw1 = &button1;
 		sw2 = &button2;
@@ -109,10 +99,6 @@
 
 	pwmleds {
 		compatible = "pwm-leds";
-<<<<<<< HEAD
-		pwm_led0: pwm_led_0 {
-			pwms = <&pwm120 0 PWM_MSEC(20) PWM_POLARITY_INVERTED>;
-=======
 		/*
 		 * LEDs are connected to GPIO Port 9 - pins 0-3. There is no valid hardware
 		 * configuration to pass PWM signal on pis 0 and 1. First valid config is P9.2.
@@ -120,7 +106,6 @@
 		 */
 		pwm_led2: pwm_led_2 {
 			pwms = <&pwm130 0 PWM_MSEC(20) PWM_POLARITY_NORMAL>;
->>>>>>> origin/v3.6.99-ncs2-cetus-1
 		};
 	};
 
@@ -131,6 +116,10 @@
 };
 
 &cpuapp_ram0x_region {
+	status = "okay";
+};
+
+&etr_buf_ram0x_region {
 	status = "okay";
 };
 
@@ -179,8 +168,12 @@ ipc0: &cpuapp_cpurad_ipc {
 	rx-region = <&cpurad_cpuapp_ipc_shm>;
 	tx-blocks = <32>;
 	rx-blocks = <32>;
-<<<<<<< HEAD
-=======
+
+
+	bt_hci_ipc0: bt_hci_ipc0 {
+		compatible = "zephyr,bt-hci-ipc";
+		status = "okay";
+	};
 };
 
 &cpuapp_cpusys_ipc {
@@ -188,7 +181,6 @@ ipc0: &cpuapp_cpurad_ipc {
 	mbox-names = "rx", "tx";
 	tx-region = <&cpuapp_cpusys_ipc_shm>;
 	rx-region = <&cpusys_cpuapp_ipc_shm>;
->>>>>>> origin/v3.6.99-ncs2-cetus-1
 };
 
 &cpuapp_cpuppr_ipc {
@@ -316,4 +308,9 @@ zephyr_udc0: &usbhs {
 	pinctrl-names = "default", "sleep";
 	memory-regions = <&cpuapp_dma_region>;
 >>>>>>> origin/v3.6.99-ncs2-cetus-1
+};
+
+&adc {
+	memory-regions = <&cpuapp_dma_region>;
+	status = "okay";
 };

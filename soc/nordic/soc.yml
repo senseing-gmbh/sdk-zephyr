@@ -24,10 +24,7 @@ family:
           - name: nrf54l15
             cpuclusters:
               - name: cpuapp
-<<<<<<< HEAD
-=======
               - name: cpuflpr
->>>>>>> origin/v3.6.99-ncs2-cetus-1
       - name: nrf54h
         socs:
           - name: nrf54h20
@@ -41,6 +38,13 @@ family:
           - name: nrf9151
           - name: nrf9160
           - name: nrf9161
+      - name: nrf92
+        socs:
+          - name: nrf9280
+            cpuclusters:
+              - name: cpuapp
+              - name: cpurad
+              - name: cpuppr
 
 # Recovery/erase is only needed once per core. Prevent resetting the cores whilst flashing
 # multiple images until all images for each core have been flashed, this allows security
@@ -51,10 +55,7 @@ runners:
     '--recover':
       - runners:
           - nrfjprog
-<<<<<<< HEAD
-=======
           - nrfutil
->>>>>>> origin/v3.6.99-ncs2-cetus-1
         run: first
         groups:
           - qualifiers:
@@ -68,8 +69,6 @@ runners:
           - qualifiers:
               - nrf9160
               - nrf9160/ns
-<<<<<<< HEAD
-=======
           - qualifiers:
               - nrf54l15/cpuapp
               - nrf54l15/cpuflpr
@@ -77,15 +76,15 @@ runners:
               - nrf54h20/cpuapp
               - nrf54h20/cpurad
               - nrf54h20/cpuppr
->>>>>>> origin/v3.6.99-ncs2-cetus-1
+          - qualifiers:
+              - nrf9280/cpuapp
+              - nrf9280/cpurad
+              - nrf9280/cpuppr
     '--erase':
       - runners:
           - nrfjprog
           - jlink
-<<<<<<< HEAD
-=======
           - nrfutil
->>>>>>> origin/v3.6.99-ncs2-cetus-1
         run: first
         groups:
           - qualifiers:
@@ -100,8 +99,6 @@ runners:
           - qualifiers:
               - nrf9160
               - nrf9160/ns
-<<<<<<< HEAD
-=======
           - qualifiers:
               - nrf54l15/cpuapp
               - nrf54l15/cpuflpr
@@ -109,15 +106,15 @@ runners:
               - nrf54h20/cpuapp
               - nrf54h20/cpurad
               - nrf54h20/cpuppr
->>>>>>> origin/v3.6.99-ncs2-cetus-1
+          - qualifiers:
+              - nrf9280/cpuapp
+              - nrf9280/cpurad
+              - nrf9280/cpuppr
     '--reset':
       - runners:
           - nrfjprog
           - jlink
-<<<<<<< HEAD
-=======
           - nrfutil
->>>>>>> origin/v3.6.99-ncs2-cetus-1
         run: last
         groups:
           - qualifiers:
@@ -132,8 +129,6 @@ runners:
           - qualifiers:
               - nrf9160
               - nrf9160/ns
-<<<<<<< HEAD
-=======
           - qualifiers:
               - nrf54l15/cpuapp
               - nrf54l15/cpuflpr
@@ -141,4 +136,7 @@ runners:
               - nrf54h20/cpuapp
               - nrf54h20/cpurad
               - nrf54h20/cpuppr
->>>>>>> origin/v3.6.99-ncs2-cetus-1
+          - qualifiers:
+              - nrf9280/cpuapp
+              - nrf9280/cpurad
+              - nrf9280/cpuppr
