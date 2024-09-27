@@ -6,12 +6,20 @@ if (CONFIG_NRF_802154_RADIO_DRIVER OR CONFIG_NRF_802154_SERIALIZATION)
 endif (CONFIG_NRF_802154_RADIO_DRIVER OR CONFIG_NRF_802154_SERIALIZATION)
 
 add_subdirectory_ifdef(CONFIG_HAS_NRFX nrfx)
+add_subdirectory_ifdef(CONFIG_HAS_NRFS nrfs)
 
 if(CONFIG_NRF_REGTOOL_GENERATE_UICR)
   list(APPEND nrf_regtool_components GENERATE:UICR)
 endif()
+if(CONFIG_NRF_REGTOOL_GENERATE_BICR)
+  list(APPEND nrf_regtool_components GENERATE:BICR)
+endif()
 if(DEFINED nrf_regtool_components)
+<<<<<<< HEAD
   find_package(nrf-regtool 5.1.0 REQUIRED
+=======
+  find_package(nrf-regtool 5.3.2 REQUIRED
+>>>>>>> origin/v3.6.99-ncs2-cetus-1
     COMPONENTS ${nrf_regtool_components}
     PATHS ${CMAKE_CURRENT_LIST_DIR}/nrf-regtool
     NO_CMAKE_PATH

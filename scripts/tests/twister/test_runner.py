@@ -42,6 +42,7 @@ def mocked_instance(tmp_path):
     testsuite.source_dir: str = ''
     instance.testsuite = testsuite
     platform = mock.Mock()
+    platform.sysbuild = False
     platform.binaries: List[str] = []
     instance.platform = platform
     build_dir = tmp_path / 'build_dir'
@@ -131,7 +132,8 @@ def test_if_default_binaries_are_taken_properly(project_builder: ProjectBuilder)
         os.path.join('zephyr', 'zephyr.elf'),
         os.path.join('zephyr', 'zephyr.exe'),
     ]
-    project_builder.testsuite.sysbuild = False
+    #project_builder.testsuite.sysbuild = False
+    project_builder.instance.sysbuild = False
     binaries = project_builder._get_binaries()
     assert sorted(binaries) == sorted(default_binaries)
 
@@ -139,7 +141,8 @@ def test_if_default_binaries_are_taken_properly(project_builder: ProjectBuilder)
 def test_if_binaries_from_platform_are_taken_properly(project_builder: ProjectBuilder):
     platform_binaries = ['spi_image.bin']
     project_builder.platform.binaries = platform_binaries
-    project_builder.testsuite.sysbuild = False
+    #project_builder.testsuite.sysbuild = False
+    project_builder.instance.sysbuild = False
     platform_binaries_expected = [os.path.join('zephyr', bin) for bin in platform_binaries]
     binaries = project_builder._get_binaries()
     assert sorted(binaries) == sorted(platform_binaries_expected)
@@ -555,20 +558,6 @@ TESTDATA_3 = [
         {os.path.join('other', 'dummy.testsuite.name'): True}
     ),
     (
-        'other', ['other'], True,
-        False, ['--erase'], True,
-        'Dummy parse results', True,
-        None,
-        None,
-        {},
-        {},
-        None,
-        b'dummy edt pickle contents',
-        ['Sysbuild test will be skipped,' \
-         ' --erase is not supported with --west-flash'],
-        {os.path.join('other', 'dummy.testsuite.name'): True}
-    ),
-    (
         'other', ['other'], False,
         True, None, False,
         'Dummy parse results', True,
@@ -651,7 +640,7 @@ TESTDATA_3 = [
     ' expected_logs, expected_return',
     TESTDATA_3,
     ids=['unit testing', 'domain', 'kconfig', 'no cache',
-         'no west options', 'erase west flash option', 'no edt',
+         'no west options', 'no edt',
          'parse result', 'no parse result', 'no testsuite filter', 'parse err']
 )
 def test_filterbuilder_parse_generated(
@@ -712,7 +701,6 @@ def test_filterbuilder_parse_generated(
         return mock.Mock()
 
     testsuite_mock = mock.Mock()
-    testsuite_mock.sysbuild = 'sysbuild' if sysbuild else None
     testsuite_mock.name = 'dummy.testsuite.name'
     testsuite_mock.filter = testsuite_filter
     platform_mock = mock.Mock()
@@ -724,6 +712,7 @@ def test_filterbuilder_parse_generated(
     fb = FilterBuilder(testsuite_mock, platform_mock, source_dir, build_dir,
                        mocked_jobserver)
     instance_mock = mock.Mock()
+    instance_mock.sysbuild = 'sysbuild' if sysbuild else None
     fb.instance = instance_mock
     fb.env = mock.Mock()
     fb.env.options = mock.Mock()
@@ -884,6 +873,7 @@ TESTDATA_6 = [
         mock.ANY,
         mock.ANY,
         mock.ANY,
+        mock.ANY,
         [],
         {'op': 'report', 'test': mock.ANY},
         'failed',
@@ -902,6 +892,7 @@ TESTDATA_6 = [
         mock.ANY,
         mock.ANY,
         {'filter': { 'dummy instance name': True }},
+        mock.ANY,
         mock.ANY,
         mock.ANY,
         mock.ANY,
@@ -926,6 +917,7 @@ TESTDATA_6 = [
         mock.ANY,
         mock.ANY,
         mock.ANY,
+        mock.ANY,
         [],
         {'op': 'cmake', 'test': mock.ANY},
         'passed',
@@ -937,6 +929,7 @@ TESTDATA_6 = [
         {'op': 'cmake'},
         'error',
         'dummy error',
+        mock.ANY,
         mock.ANY,
         mock.ANY,
         mock.ANY,
@@ -968,6 +961,7 @@ TESTDATA_6 = [
         mock.ANY,
         mock.ANY,
         mock.ANY,
+        mock.ANY,
         [],
         {'op': 'report', 'test': mock.ANY},
         'passed',
@@ -982,6 +976,7 @@ TESTDATA_6 = [
         mock.ANY,
         mock.ANY,
         True,
+        mock.ANY,
         mock.ANY,
         mock.ANY,
         mock.ANY,
@@ -1010,6 +1005,7 @@ TESTDATA_6 = [
         mock.ANY,
         mock.ANY,
         mock.ANY,
+        mock.ANY,
         ['filtering dummy instance name'],
         {'op': 'report', 'test': mock.ANY},
         'filtered',
@@ -1028,6 +1024,7 @@ TESTDATA_6 = [
         mock.ANY,
         mock.ANY,
         {'filter': {}},
+        mock.ANY,
         mock.ANY,
         mock.ANY,
         mock.ANY,
@@ -1052,6 +1049,7 @@ TESTDATA_6 = [
         None,
         mock.ANY,
         mock.ANY,
+        mock.ANY,
         ['build test: dummy instance name'],
         {'op': 'report', 'test': mock.ANY},
         'error',
@@ -1071,6 +1069,7 @@ TESTDATA_6 = [
         mock.ANY,
         mock.ANY,
         {'returncode': 0},
+        mock.ANY,
         mock.ANY,
         mock.ANY,
         ['build test: dummy instance name',
@@ -1095,6 +1094,7 @@ TESTDATA_6 = [
         {'dummy': 'dummy'},
         mock.ANY,
         mock.ANY,
+        mock.ANY,
         ['build test: dummy instance name'],
         {'op': 'report', 'test': mock.ANY},
         'passed',
@@ -1114,6 +1114,7 @@ TESTDATA_6 = [
         mock.ANY,
         mock.ANY,
         {'returncode': 0},
+        mock.ANY,
         mock.ANY,
         mock.ANY,
         ['build test: dummy instance name',
@@ -1137,6 +1138,7 @@ TESTDATA_6 = [
         mock.ANY,
         {'returncode': 0},
         mock.ANY,
+        mock.ANY,
         BuildError,
         ['build test: dummy instance name',
          'Determine test cases for test instance: dummy instance name'],
@@ -1158,6 +1160,7 @@ TESTDATA_6 = [
         mock.ANY,
         mock.ANY,
         mock.ANY,
+        {'returncode': 0},  # metrics_res
         mock.ANY,
         mock.ANY,
         [],
@@ -1166,7 +1169,7 @@ TESTDATA_6 = [
         mock.ANY,
         0,
         None
-    ),
+    ),  # 'gather metrics, run and ready handler'
     (
         {'op': 'gather_metrics'},
         mock.ANY,
@@ -1179,6 +1182,7 @@ TESTDATA_6 = [
         mock.ANY,
         mock.ANY,
         mock.ANY,
+        {'returncode': 0},  # metrics_res
         mock.ANY,
         mock.ANY,
         [],
@@ -1187,11 +1191,34 @@ TESTDATA_6 = [
         mock.ANY,
         0,
         None
-    ),
+    ),  # 'gather metrics'
+    (
+        {'op': 'gather_metrics'},
+        mock.ANY,
+        mock.ANY,
+        False,
+        True,
+        mock.ANY,
+        mock.ANY,
+        mock.ANY,
+        mock.ANY,
+        mock.ANY,
+        {'returncode': 0},  # build_res
+        {'returncode': 1},  # metrics_res
+        mock.ANY,
+        mock.ANY,
+        [],
+        {'op': 'report', 'test': mock.ANY},
+        'error',
+        'Build Failure at gather_metrics.',
+        0,
+        None
+    ),  # 'build ok, gather metrics fail',
     (
         {'op': 'run'},
         'success',
         'OK',
+        mock.ANY,
         mock.ANY,
         mock.ANY,
         mock.ANY,
@@ -1213,6 +1240,7 @@ TESTDATA_6 = [
     (
         {'op': 'run'},
         'failed',
+        mock.ANY,
         mock.ANY,
         mock.ANY,
         mock.ANY,
@@ -1247,6 +1275,7 @@ TESTDATA_6 = [
         mock.ANY,
         mock.ANY,
         mock.ANY,
+        mock.ANY,
         [],
         {'op': 'cleanup', 'mode': 'device', 'test': mock.ANY},
         mock.ANY,
@@ -1264,6 +1293,7 @@ TESTDATA_6 = [
         False,
         False,
         'pass',
+        mock.ANY,
         mock.ANY,
         mock.ANY,
         mock.ANY,
@@ -1289,6 +1319,7 @@ TESTDATA_6 = [
         mock.ANY,
         mock.ANY,
         mock.ANY,
+        mock.ANY,
         [],
         {'op': 'cleanup', 'mode': 'all', 'test': mock.ANY},
         mock.ANY,
@@ -1310,6 +1341,7 @@ TESTDATA_6 = [
         mock.ANY,
         mock.ANY,
         mock.ANY,
+        mock.ANY,
         [],
         None,
         mock.ANY,
@@ -1319,6 +1351,7 @@ TESTDATA_6 = [
     ),
     (
         {'op': 'cleanup', 'mode': 'device'},
+        mock.ANY,
         mock.ANY,
         mock.ANY,
         mock.ANY,
@@ -1352,6 +1385,7 @@ TESTDATA_6 = [
         mock.ANY,
         mock.ANY,
         mock.ANY,
+        mock.ANY,
         [],
         None,
         mock.ANY,
@@ -1363,6 +1397,7 @@ TESTDATA_6 = [
         {'op': 'cleanup', 'mode': 'all'},
         mock.ANY,
         'Valgrind error',
+        mock.ANY,
         mock.ANY,
         mock.ANY,
         mock.ANY,
@@ -1394,6 +1429,7 @@ TESTDATA_6 = [
         mock.ANY,
         mock.ANY,
         mock.ANY,
+        mock.ANY,
         [],
         None,
         mock.ANY,
@@ -1408,7 +1444,7 @@ TESTDATA_6 = [
     ' instance_status, instance_reason, instance_run, instance_handler_ready,' \
     ' options_cmake_only,' \
     ' options_coverage, options_prep_artifacts, options_runtime_artifacts,' \
-    ' cmake_res, build_res,' \
+    ' cmake_res, build_res, metrics_res,' \
     ' pipeline_runtime_error, determine_testcases_build_error,' \
     ' expected_logs, resulting_message,' \
     ' expected_status, expected_reason, expected_skipped, expected_missing',
@@ -1420,6 +1456,7 @@ TESTDATA_6 = [
         'build, no build res', 'build, skipped', 'build, blocked',
         'build, determine testcases', 'build, determine testcases Error',
         'gather metrics, run and ready handler', 'gather metrics',
+        'build ok, gather metrics fail',
         'run', 'run, Pipeline Runtime Error',
         'report, prep artifacts for testing',
         'report, runtime artifact cleanup pass, status passed',
@@ -1442,6 +1479,7 @@ def test_projectbuilder_process(
     options_runtime_artifacts,
     cmake_res,
     build_res,
+    metrics_res,
     pipeline_runtime_error,
     determine_testcases_build_error,
     expected_logs,
@@ -1485,7 +1523,7 @@ def test_projectbuilder_process(
     pb.cleanup_artifacts = mock.Mock()
     pb.cleanup_device_testing_artifacts = mock.Mock()
     pb.run = mock.Mock()
-    pb.gather_metrics = mock.Mock()
+    pb.gather_metrics = mock.Mock(return_value=metrics_res)
 
     pipeline_mock = mock.Mock(put=mock.Mock(side_effect=mock_pipeline_put))
     done_mock = mock.Mock()
@@ -1640,7 +1678,8 @@ def test_projectbuilder_cleanup_device_testing_artifacts(
     bins = [os.path.join('zephyr', 'file.bin')]
 
     instance_mock = mock.Mock()
-    instance_mock.testsuite.sysbuild = False
+    #instance_mock.testsuite.sysbuild = False
+    instance_mock.sysbuild = False
     build_dir = os.path.join('build', 'dir')
     instance_mock.build_dir = build_dir
     env_mock = mock.Mock()
@@ -1756,7 +1795,7 @@ def test_projectbuilder_get_binaries_from_runners(
 
     with mock.patch('os.path.exists', mock_exists), \
          mock.patch('builtins.open', mock.mock_open()), \
-         mock.patch('yaml.safe_load', return_value=runners_content):
+         mock.patch('yaml.load', return_value=runners_content):
         if domain:
             bins = pb._get_binaries_from_runners(domain)
         else:

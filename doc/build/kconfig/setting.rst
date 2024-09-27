@@ -126,7 +126,7 @@ The initial configuration for an application comes from merging configuration
 settings from three sources:
 
 1. A ``BOARD``-specific configuration file stored in
-   :file:`boards/<architecture>/<BOARD>/<BOARD>_defconfig`
+   :file:`boards/<VENDOR>/<BOARD>/<BOARD>_defconfig`
 
 2. Any CMake cache entries prefix with ``CONFIG_``
 
@@ -153,9 +153,12 @@ used.
    :file:`prj_<build>.conf`, the result of merging :file:`prj_<build>.conf` and
    :file:`boards/<BOARD>_<build>.conf` is used - note that this feature is
    deprecated, :ref:`application-file-suffixes` should be used instead.
+<<<<<<< HEAD
 
 #. Otherwise, :file:`prj_<BOARD>.conf` is used if it exists in the application
    configuration directory.
+=======
+>>>>>>> origin/v3.6.99-ncs2-cetus-1
 
 #. Otherwise, if :file:`boards/<BOARD>.conf` exists in the application
    configuration directory, the result of merging it with :file:`prj.conf` is
@@ -204,7 +207,7 @@ Configuring invisible Kconfig symbols
 
 When making changes to the default configuration for a board, you might have to
 configure invisible symbols. This is done in
-:file:`boards/<architecture>/<BOARD>/Kconfig.defconfig`, which is a regular
+:file:`boards/<VENDOR>/<BOARD>/Kconfig.defconfig`, which is a regular
 :file:`Kconfig` file.
 
 .. note::

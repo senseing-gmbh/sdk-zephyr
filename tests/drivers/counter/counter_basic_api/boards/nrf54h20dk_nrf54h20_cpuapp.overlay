@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 &timer120 {
 	status = "okay";
 	prescaler = <7>;
@@ -56,3 +57,8 @@
 &rtc131 {
 	status = "okay";
 };
+=======
+/* SPDX-License-Identifier: Apache-2.0 */
+
+#include "nrf54h20dk_nrf54h20_common.dtsi"
+>>>>>>> origin/v3.6.99-ncs2-cetus-1

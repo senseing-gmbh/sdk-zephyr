@@ -110,6 +110,12 @@ LOG_MODULE_REGISTER(ipc_icbmsg,
 /** Registered endpoints count mask in flags. */
 #define FLAG_EPT_COUNT_MASK 0xFFFF
 
+/** Workqueue stack size for bounding processing (this configuration is not optimized). */
+#define EP_BOUND_WORK_Q_STACK_SIZE (512U)
+
+/** Workqueue priority for bounding processing. */
+#define EP_BOUND_WORK_Q_PRIORITY (CONFIG_SYSTEM_WORKQUEUE_PRIORITY)
+
 enum msg_type {
 	MSG_DATA = 0,		/* Data message. */
 	MSG_RELEASE_DATA,	/* Release data buffer message. */
@@ -133,6 +139,14 @@ enum ept_bounding_state {
 	EPT_READY,		/* Bounding is done. Bound callback was called. */
 };
 
+enum ept_rebound_state {
+	EPT_NORMAL = 0,		/* No endpoint rebounding is needed. */
+	EPT_DEREGISTERED,	/* Endpoint was deregistered. */
+	EPT_REBOUNDING,		/* Rebounding was requested, waiting for work queue to
+				 * start rebounding process.
+				 */
+};
+
 struct channel_config {
 	uint8_t *blocks_ptr;	/* Address where the blocks start. */
 	size_t block_size;	/* Size of one block. */
@@ -153,6 +167,7 @@ struct icbmsg_config {
 struct ept_data {
 	const struct ipc_ept_cfg *cfg;	/* Endpoint configuration. */
 	atomic_t state;			/* Bounding state. */
+	atomic_t rebound_state;		/* Rebounding state. */
 	uint8_t addr;			/* Endpoint address. */
 };
 
@@ -193,6 +208,9 @@ struct control_message {
 };
 
 BUILD_ASSERT(NUM_EPT <= EPT_ADDR_INVALID, "Too many endpoints");
+
+/* Work queue for bounding processing. */
+static struct k_work_q ep_bound_work_q;
 
 /**
  * Calculate pointer to block from its index and channel configuration (RX or TX).
@@ -461,7 +479,7 @@ static int release_tx_buffer(struct backend_data *dev_data, const uint8_t *buffe
 			     int new_size)
 {
 	const struct icbmsg_config *conf = dev_data->conf;
-	size_t size;
+	size_t size = 0;
 	int tx_block_index;
 
 	tx_block_index = buffer_to_index_validate(&conf->tx, buffer, &size);
@@ -492,7 +510,7 @@ static int send_control_message(struct backend_data *dev_data, enum msg_type msg
 	r = icmsg_send(&conf->control_config, &dev_data->control_data, &message,
 		       sizeof(message));
 	k_mutex_unlock(&dev_data->mutex);
-	if (r < 0) {
+	if (r < sizeof(message)) {
 		LOG_ERR("Cannot send over ICMsg, err %d", r);
 	}
 	return r;
@@ -532,7 +550,7 @@ static int send_release(struct backend_data *dev_data, const uint8_t *buffer,
  * @param[in] size		Actual size of the data, can be smaller than allocated,
  *				but it cannot change number of required blocks.
  *
- * @return			O or negative error code.
+ * @return			number of bytes sent in the message or negative error code.
  */
 static int send_block(struct backend_data *dev_data, enum msg_type msg_type,
 		      uint8_t ept_addr, size_t tx_block_index, size_t size)
@@ -647,7 +665,7 @@ static int match_bound_msg(struct backend_data *dev_data, size_t rx_block_index,
  *
  * @param[in] ept	Endpoint to use.
  *
- * @return		O or negative error code.
+ * @return		non-negative value in case of success or negative error code.
  */
 static int send_bound_message(struct backend_data *dev_data, struct ept_data *ept)
 {
@@ -672,7 +690,7 @@ static int send_bound_message(struct backend_data *dev_data, struct ept_data *ep
  */
 static void schedule_ept_bound_process(struct backend_data *dev_data)
 {
-	k_work_submit(&dev_data->ep_bound_work);
+	k_work_submit_to_queue(&ep_bound_work_q, &dev_data->ep_bound_work);
 }
 
 /**
@@ -726,6 +744,18 @@ static void ept_bound_process(struct k_work *item)
 		}
 		k_mutex_unlock(&dev_data->mutex);
 	}
+
+	/* Check if any endpoint is ready to rebound and call the callback if it is. */
+	for (i = 0; i < NUM_EPT; i++) {
+		ept = &dev_data->ept[i];
+		matching_state = atomic_cas(&ept->rebound_state, EPT_REBOUNDING,
+						EPT_NORMAL);
+		if (matching_state) {
+			if (ept->cfg->cb.bound != NULL) {
+				ept->cfg->cb.bound(ept->cfg->priv);
+			}
+		}
+	}
 }
 
 /**
@@ -749,7 +779,10 @@ static struct ept_data *get_ept_and_rx_validate(struct backend_data *dev_data,
 	state = atomic_get(&ept->state);
 
 	if (state == EPT_READY) {
-		/* Valid state - nothing to do. */
+		/* Ready state, ensure that it is not deregistered nor rebounding. */
+		if (atomic_get(&ept->rebound_state) != EPT_NORMAL) {
+			return NULL;
+		}
 	} else if (state == EPT_BOUNDING) {
 		/* Endpoint bound callback was not called yet - call it. */
 		atomic_set(&ept->state, EPT_READY);
@@ -983,7 +1016,12 @@ static int send(const struct device *instance, void *token, const void *msg, siz
 	memcpy(buffer, msg, len);
 
 	/* Send data message. */
-	return send_block(dev_data, MSG_DATA, ept->addr, r, len);
+	r = send_block(dev_data, MSG_DATA, ept->addr, r, len);
+	if (r < 0) {
+		return r;
+	}
+
+	return len;
 }
 
 /**
@@ -994,8 +1032,23 @@ static int register_ept(const struct device *instance, void **token,
 {
 	struct backend_data *dev_data = instance->data;
 	struct ept_data *ept = NULL;
+	bool matching_state;
 	int ept_index;
 	int r = 0;
+
+	/* Try to find endpoint to rebound */
+	for (ept_index = 0; ept_index < NUM_EPT; ept_index++) {
+		ept = &dev_data->ept[ept_index];
+		if (ept->cfg == cfg) {
+			matching_state = atomic_cas(&ept->rebound_state, EPT_DEREGISTERED,
+						   EPT_REBOUNDING);
+			if (!matching_state) {
+				return -EINVAL;
+			}
+			schedule_ept_bound_process(dev_data);
+			return 0;
+		}
+	}
 
 	/* Reserve new endpoint index. */
 	ept_index = atomic_inc(&dev_data->flags) & FLAG_EPT_COUNT_MASK;
@@ -1021,6 +1074,23 @@ static int register_ept(const struct device *instance, void **token,
 	schedule_ept_bound_process(dev_data);
 
 	return r;
+}
+
+/**
+ * Backend endpoint deregistration callback.
+ */
+static int deregister_ept(const struct device *instance, void *token)
+{
+	struct ept_data *ept = token;
+	bool matching_state;
+
+	matching_state = atomic_cas(&ept->rebound_state, EPT_NORMAL, EPT_DEREGISTERED);
+
+	if (!matching_state) {
+		return -EINVAL;
+	}
+
+	return 0;
 }
 
 /**
@@ -1117,6 +1187,17 @@ static int backend_init(const struct device *instance)
 {
 	const struct icbmsg_config *conf = instance->config;
 	struct backend_data *dev_data = instance->data;
+	static K_THREAD_STACK_DEFINE(ep_bound_work_q_stack, EP_BOUND_WORK_Q_STACK_SIZE);
+	static bool is_work_q_started;
+
+	if (!is_work_q_started) {
+		k_work_queue_init(&ep_bound_work_q);
+		k_work_queue_start(&ep_bound_work_q, ep_bound_work_q_stack,
+				   K_THREAD_STACK_SIZEOF(ep_bound_work_q_stack),
+				   EP_BOUND_WORK_Q_PRIORITY, NULL);
+
+		is_work_q_started = true;
+	}
 
 	dev_data->conf = conf;
 	dev_data->is_initiator = (conf->rx.blocks_ptr < conf->tx.blocks_ptr);
@@ -1136,7 +1217,7 @@ const static struct ipc_service_backend backend_ops = {
 	.close_instance = NULL, /* not implemented */
 	.send = send,
 	.register_endpoint = register_ept,
-	.deregister_endpoint = NULL, /* not implemented */
+	.deregister_endpoint = deregister_ept,
 	.get_tx_buffer_size = get_tx_buffer_size,
 	.get_tx_buffer = get_tx_buffer,
 	.drop_tx_buffer = drop_tx_buffer,

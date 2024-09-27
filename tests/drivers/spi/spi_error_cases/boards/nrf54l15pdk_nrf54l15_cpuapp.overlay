@@ -47,7 +47,11 @@
 	status = "okay";
 };
 
+<<<<<<< HEAD
 dut_spi: &spi22 {
+=======
+&spi22 {
+>>>>>>> origin/v3.6.99-ncs2-cetus-1
 	status = "okay";
 	pinctrl-0 = <&spi22_default_alt>;
 	pinctrl-1 = <&spi22_sleep_alt>;
@@ -57,7 +61,11 @@ dut_spi: &spi22 {
 	dut_spi_dt: test-spi-dev@0 {
 		compatible = "vnd,spi-device";
 		reg = <0>;
+<<<<<<< HEAD
 		spi-max-frequency = <200000>;
+=======
+		spi-max-frequency = <4000000>;
+>>>>>>> origin/v3.6.99-ncs2-cetus-1
 	};
 };
 
@@ -68,11 +76,14 @@ dut_spis: &spi21 {
 	pinctrl-0 = <&spi21_default_alt>;
 	pinctrl-1 = <&spi21_sleep_alt>;
 	pinctrl-names = "default", "sleep";
+<<<<<<< HEAD
 	dut_spis_dt: test-spis-dev@0 {
 		compatible = "vnd,spi-device";
 		reg = <0>;
 		spi-max-frequency = <200000>;
 	};
+=======
+>>>>>>> origin/v3.6.99-ncs2-cetus-1
 	/delete-property/rx-delay-supported;
 	/delete-property/rx-delay;
 };

@@ -25,6 +25,7 @@
 		watchdog0 = &wdt0;
 	};
 
+<<<<<<< HEAD
 	arduino_header: connector {
 		compatible = "arduino-header-r3";
 		#gpio-cells = <2>;
@@ -54,6 +55,8 @@
 			   <21 0 &gpio1 3 0>;	/* D15 */
 	};
 
+=======
+>>>>>>> origin/v3.6.99-ncs2-cetus-1
 };
 
 arduino_spi: &spi0 {

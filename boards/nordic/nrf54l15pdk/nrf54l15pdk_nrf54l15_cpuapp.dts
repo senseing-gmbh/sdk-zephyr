@@ -5,21 +5,16 @@
  */
 
 /dts-v1/;
-#include <nordic/nrf54l15_cpuapp.dtsi>
-#include "nrf54l15pdk_nrf54l15_cpuapp-pinctrl.dtsi"
-#include <zephyr/dt-bindings/input/input-event-codes.h>
+
+#include "nrf54l15_cpuapp_common.dtsi"
 
 / {
-	model = "Nordic nRF54L15 PDK nRF54L15 Application MCU";
 	compatible = "nordic,nrf54l15pdk_nrf54l15-cpuapp";
+	model = "Nordic nRF54L15 PDK nRF54L15 Application MCU";
 
 	chosen {
-		zephyr,console = &uart20;
-		zephyr,shell-uart = &uart20;
-		zephyr,uart-mcumgr = &uart20;
-		zephyr,sram = &sram0;
-		zephyr,flash = &rram0;
 		zephyr,code-partition = &slot0_partition;
+<<<<<<< HEAD
 		zephyr,ieee802154 = &ieee802154;
 	};
 
@@ -220,3 +215,8 @@
 	pinctrl-1 = <&pwm20_sleep>;
 	pinctrl-names = "default", "sleep";
 };
+=======
+		zephyr,sram = &cpuapp_sram;
+	};
+};
+>>>>>>> origin/v3.6.99-ncs2-cetus-1

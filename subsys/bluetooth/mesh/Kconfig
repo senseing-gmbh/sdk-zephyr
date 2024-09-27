@@ -59,12 +59,16 @@ choice BT_MESH_ADV
 
 menuconfig BT_MESH_ADV_LEGACY
 	bool "Legacy advertising"
+	depends on BT_LL_SW_SPLIT
 	help
 	  Use legacy advertising commands for mesh sending. Legacy
-	  advertising is significantly slower than the extended advertising, but
-	  is supported by all controllers.
+	  advertising is significantly slower than the extended advertising.
 
-	  WARNING: The legacy advertiser can occasionally do more message
+	  WARNING: This feature is not supported in NCS. The legacy advertiser will not work
+	  with SDC, as attempting to start an advertisement during the scanner duty cycle
+	  will result in an error. The Zephyr Link Layer can be used experimentally as an
+	  alternative.
+	  The legacy advertiser can occasionally do more message
 	  retransmissions than requested because of limitations of HCI
 	  interface API.
 
@@ -147,6 +151,17 @@ config BT_MESH_ADV_EXT_FRIEND_SEPARATE
 	  extended advertising set makes the Friend node send friendship
 	  messages as close to the start of the ReceiveWindow as possible,
 	  thus reducing the scanning time on the Low Power node.
+
+config BT_MESH_ADV_EXT_ACCEPT_EXT_ADV_PACKETS
+	bool "Reject or accept extended advertising packets"
+	depends on BT_LL_SOFTDEVICE
+	help
+	  Configure the scanner and initiator to either reject or accept extended
+	  advertising packets by the SoftDevice Controller. This is set to false
+	  by default, to prevent loss of scan time when receiving a pointer packet
+	  while scanning for Bluetooth Mesh packets. Set to true if extended
+	  advertising packets are to be received by the SoftDevice Controller for
+	  purposes other than Bluetooth Mesh.
 
 endif # BT_MESH_ADV_EXT
 
@@ -1152,6 +1167,7 @@ endif # BT_MESH_OP_AGG_CLI
 
 config BT_MESH_LARGE_COMP_DATA_SRV
 	bool "Support for Large Composition Data Server Model"
+	depends on BT_MESH_MODEL_EXTENSIONS
 	help
 	  Enable support for the Large Composition Data Server model.
 
@@ -1175,6 +1191,7 @@ if BT_MESH_PRIV_BEACONS
 
 config BT_MESH_PRIV_BEACON_SRV
 	bool "Support for Private Beacon Server Model"
+	depends on BT_MESH_MODEL_EXTENSIONS
 	help
 	  Enable support for the Private Beacon Server model.
 
@@ -1349,6 +1366,7 @@ config BT_MESH_USES_MBEDTLS_PSA
 	select MBEDTLS
 	select MBEDTLS_ZEPHYR_ENTROPY
 	select MBEDTLS_PSA_CRYPTO_C
+	select MBEDTLS_USE_PSA_CRYPTO
 	select MBEDTLS_MAC_CMAC_ENABLED
 	select MBEDTLS_CIPHER_AES_ENABLED
 	select MBEDTLS_AES_ROM_TABLES
@@ -1639,7 +1657,7 @@ config BT_MESH_FRIEND_SEG_RX
 
 config BT_MESH_FRIEND_ADV_LATENCY
 	int "Latency for enabling advertising"
-	range 0 4
+	range 0 10
 	default 0
 	help
 	  Latency in milliseconds between request for and start of Friend

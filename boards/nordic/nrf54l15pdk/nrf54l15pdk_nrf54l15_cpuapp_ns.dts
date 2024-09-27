@@ -1,6 +1,7 @@
 /*
  * Copyright (c) 2024 Nordic Semiconductor ASA
  *
+<<<<<<< HEAD
  * SPDX-License-Identifier: LicenseRef-Nordic-5-Clause
  */
 
@@ -83,6 +84,25 @@
 	pinctrl-0 = <&uart20_default>;
 	pinctrl-1 = <&uart20_sleep>;
 	pinctrl-names = "default", "sleep";
+=======
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+/dts-v1/;
+
+#define USE_NON_SECURE_ADDRESS_MAP 1
+
+#include "nrf54l15_cpuapp_common.dtsi"
+
+/ {
+	compatible = "nordic,nrf54l15pdk_nrf54l15-cpuapp";
+	model = "Nordic nRF54L15 PDK nRF54L15 Application MCU";
+
+	chosen {
+		zephyr,code-partition = &slot0_partition;
+		zephyr,sram = &cpuapp_sram;
+	};
+>>>>>>> origin/v3.6.99-ncs2-cetus-1
 };
 
 &uart30 {
@@ -94,6 +114,7 @@
 	pinctrl-1 = <&uart30_sleep>;
 	pinctrl-names = "default", "sleep";
 };
+<<<<<<< HEAD
 
 &grtc {
 	status = "okay";
@@ -130,3 +151,5 @@
 &clock {
 	status = "okay";
 };
+=======
+>>>>>>> origin/v3.6.99-ncs2-cetus-1

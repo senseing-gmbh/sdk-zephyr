@@ -233,15 +233,25 @@ ZTEST(uart_elementary, test_uart_dual_port_transmission)
 {
 	int err;
 	struct uart_config test_uart_config = { .baudrate = 115200,
+<<<<<<< HEAD
 						.parity = UART_CFG_PARITY_NONE,
 						.stop_bits = UART_CFG_STOP_BITS_1,
+=======
+						.parity = UART_CFG_PARITY_EVEN,
+						.stop_bits = UART_CFG_STOP_BITS_2,
+>>>>>>> origin/v3.6.99-ncs2-cetus-1
 						.data_bits = UART_CFG_DATA_BITS_8,
 						.flow_ctrl = UART_CFG_FLOW_CTRL_NONE };
 
 #if defined(CONFIG_SETUP_MISMATCH_TEST)
 	struct uart_config test_uart_config_aux = { .baudrate = 9600,
+<<<<<<< HEAD
 						    .parity = UART_CFG_PARITY_NONE,
 						    .stop_bits = UART_CFG_STOP_BITS_1,
+=======
+						    .parity = UART_CFG_PARITY_EVEN,
+						    .stop_bits = UART_CFG_STOP_BITS_2,
+>>>>>>> origin/v3.6.99-ncs2-cetus-1
 						    .data_bits = UART_CFG_DATA_BITS_8,
 						    .flow_ctrl = UART_CFG_FLOW_CTRL_NONE };
 #endif

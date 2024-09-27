@@ -8,11 +8,18 @@
 LOG_MODULE_REGISTER(net_sock_svc, CONFIG_NET_SOCKETS_LOG_LEVEL);
 
 #include <zephyr/kernel.h>
+#include <zephyr/init.h>
 #include <zephyr/net/socket_service.h>
 #include <zephyr/posix/sys/eventfd.h>
 
 static int init_socket_service(void);
-static bool init_done;
+enum SOCKET_SERVICE_THREAD_STATUS {
+	SOCKET_SERVICE_THREAD_UNINITIALIZED = 0,
+	SOCKET_SERVICE_THREAD_FAILED,
+	SOCKET_SERVICE_THREAD_STOPPED,
+	SOCKET_SERVICE_THREAD_RUNNING,
+};
+static enum SOCKET_SERVICE_THREAD_STATUS thread_status;
 
 static K_MUTEX_DEFINE(lock);
 static K_CONDVAR_DEFINE(wait_start);
@@ -51,8 +58,11 @@ int z_impl_net_socket_service_register(const struct net_socket_service_desc *svc
 
 	k_mutex_lock(&lock, K_FOREVER);
 
-	if (!init_done) {
+	if (thread_status == SOCKET_SERVICE_THREAD_UNINITIALIZED) {
 		(void)k_condvar_wait(&wait_start, &lock, K_FOREVER);
+	} else if (thread_status != SOCKET_SERVICE_THREAD_RUNNING) {
+		ret = -EIO;
+		goto out;
 	}
 
 	if (STRUCT_SECTION_START(net_socket_service_desc) > svc ||
@@ -179,6 +189,7 @@ static int trigger_work(struct zsock_pollfd *pev)
 static void socket_service_thread(void)
 {
 	int ret, i, fd, count = 0;
+	int error_count = 0;
 	eventfd_t value;
 
 	STRUCT_SECTION_COUNT(net_socket_service_desc, &ret);
@@ -218,7 +229,7 @@ static void socket_service_thread(void)
 		goto out;
 	}
 
-	init_done = true;
+	thread_status = SOCKET_SERVICE_THREAD_RUNNING;
 	k_condvar_broadcast(&wait_start);
 
 	ctx.events[0].fd = fd;
@@ -252,10 +263,24 @@ restart:
 		}
 
 		if (ret > 0 && ctx.events[0].revents) {
+			if ((ctx.events[0].revents & ZSOCK_POLLNVAL) ||
+			    (ctx.events[0].revents & ZSOCK_POLLERR)) {
+				/* Ignore eventfd errors and turn eventfd
+				 * support off if we get too many errors
+				 */
+				if (++error_count > 2) {
+					ctx.events[0].fd = -1;
+				}
+
+				continue;
+			}
+
 			eventfd_read(ctx.events[0].fd, &value);
 			NET_DBG("Received restart event.");
 			goto restart;
 		}
+
+		error_count = 0;
 
 		for (i = 1; i < (count + 1); i++) {
 			if (ctx.events[i].fd < 0) {
@@ -273,11 +298,12 @@ restart:
 
 out:
 	NET_DBG("Socket service thread stopped");
-	init_done = false;
+	thread_status = SOCKET_SERVICE_THREAD_STOPPED;
 
 	return;
 
 fail:
+	thread_status = SOCKET_SERVICE_THREAD_FAILED;
 	k_condvar_broadcast(&wait_start);
 }
 

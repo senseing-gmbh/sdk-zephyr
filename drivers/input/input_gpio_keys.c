@@ -106,6 +106,14 @@ static __maybe_unused void gpio_keys_change_deferred(struct k_work *work)
 	const struct gpio_keys_config *cfg = dev->config;
 	int key_index = pin_data - (struct gpio_keys_pin_data *)cfg->pin_data;
 
+#ifdef CONFIG_PM_DEVICE
+	struct gpio_keys_data *data = dev->data;
+
+	if (atomic_get(&data->suspended) == 1) {
+		return;
+	}
+#endif
+
 	gpio_keys_poll_pin(dev, key_index);
 }
 
@@ -141,7 +149,8 @@ static int gpio_keys_interrupt_configure(const struct gpio_dt_spec *gpio_spec,
 
 	LOG_DBG("port=%s, pin=%d", gpio_spec->port->name, gpio_spec->pin);
 
-	ret = gpio_pin_interrupt_configure_dt(gpio_spec, GPIO_INT_EDGE_BOTH);
+	ret = gpio_pin_interrupt_configure_dt(gpio_spec,
+						  GPIO_INT_LEVELS_LOGICAL & ~GPIO_INT_MODE_DISABLED);
 	if (ret < 0) {
 		LOG_ERR("interrupt configuration failed: %d", ret);
 		return ret;
@@ -248,7 +257,8 @@ static int gpio_keys_pm_action(const struct device *dev,
 				k_work_reschedule(&pin_data[0].work,
 						  K_MSEC(cfg->debounce_interval_ms));
 			} else {
-				ret = gpio_pin_interrupt_configure_dt(gpio, GPIO_INT_EDGE_BOTH);
+				ret = gpio_pin_interrupt_configure_dt(
+					gpio, GPIO_INT_LEVELS_LOGICAL & ~GPIO_INT_MODE_DISABLED);
 				if (ret < 0) {
 					LOG_ERR("interrupt configuration failed: %d", ret);
 					return ret;

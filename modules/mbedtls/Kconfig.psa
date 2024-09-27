@@ -1,8 +1,26 @@
+<<<<<<< HEAD
 #
 # Copyright (c) 2022 Nordic Semiconductor
 #
 # SPDX-License-Identifier: Apache-2.0
 #
+=======
+# Copyright (c) 2024 Nordic Semiconductor ASA
+# SPDX-License-Identifier: Apache-2.0
+
+config MBEDTLS_PSA_CRYPTO_CLIENT
+	bool
+	default y
+	depends on BUILD_WITH_TFM || MBEDTLS_PSA_CRYPTO_C
+
+if MBEDTLS_PSA_CRYPTO_CLIENT
+
+config PSA_WANT_ALG_SHA_256
+	bool "SHA-256 hash algorithm through PSA"
+
+endif # MBEDTLS_PSA_CRYPTO_CLIENT
+
+>>>>>>> origin/v3.6.99-ncs2-cetus-1
 menu "PSA RNG support"
 
 config PSA_WANT_GENERATE_RANDOM
@@ -397,10 +415,13 @@ config PSA_WANT_ALG_SHA_224
 	bool
 	prompt "PSA SHA-224 support" if !PSA_PROMPTLESS
 
+<<<<<<< HEAD
 config PSA_WANT_ALG_SHA_256
 	bool
 	prompt "PSA SHA-256 support" if !PSA_PROMPTLESS
 
+=======
+>>>>>>> origin/v3.6.99-ncs2-cetus-1
 config PSA_WANT_ALG_SHA_384
 	bool
 	prompt "PSA SHA-384 support" if !PSA_PROMPTLESS

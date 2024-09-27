@@ -9,6 +9,11 @@ import shlex
 import sys
 import yaml
 
+from pathlib import Path
+from zephyr_ext_common import ZEPHYR_BASE
+sys.path.append(os.fspath(Path(__file__).parent.parent))
+import zephyr_module
+
 from west import log
 from west.configuration import config
 from zcmake import DEFAULT_CMAKE_GENERATOR, run_cmake, run_build, CMakeCache
@@ -24,6 +29,7 @@ SYSBUILD_PROJ_DIR = pathlib.Path(__file__).resolve().parent.parent.parent \
 
 BUILD_USAGE = '''\
 west build [-h] [-b BOARD[@REV]]] [-d BUILD_DIR]
+           [-S SNIPPET] [--shield SHIELD]
            [-t TARGET] [-p {auto, always, never}] [-c] [--cmake-only]
            [-n] [-o BUILD_OPT] [-f]
            [--sysbuild | --no-sysbuild] [--domain DOMAIN]
@@ -135,12 +141,19 @@ class Build(Forceable):
         group.add_argument('-n', '--just-print', '--dry-run', '--recon',
                             dest='dry_run', action='store_true',
                             help="just print build commands; don't run them")
-        group.add_argument('-S', '--snippet', dest='snippets',
+        group.add_argument('-S', '--snippet', dest='snippets', metavar='SNIPPET',
                            action='append', default=[],
                            help='''add the argument to SNIPPET; may be given
                            multiple times. Forces CMake to run again if given.
                            Do not use this option with manually specified
                            -DSNIPPET... cmake arguments: the results are
+                           undefined''')
+        group.add_argument('--shield', dest='shields', metavar='SHIELD',
+                           action='append', default=[],
+                           help='''add the argument to SHIELD; may be given
+                           multiple times. Forces CMake to run again if given.
+                           Do not use this option with manually specified
+                           -DSHIELD... cmake arguments: the results are
                            undefined''')
 
         group = parser.add_mutually_exclusive_group()
@@ -214,7 +227,8 @@ class Build(Forceable):
             else:
                 self._update_cache()
                 if (self.args.cmake or self.args.cmake_opts or
-                        self.args.cmake_only or self.args.snippets):
+                        self.args.cmake_only or self.args.snippets or
+                        self.args.shields):
                     self.run_cmake = True
         else:
             self.run_cmake = True
@@ -267,7 +281,7 @@ class Build(Forceable):
             if remainder:
                 self.args.cmake_opts = remainder
         except IndexError:
-            return
+            pass
 
     def _parse_test_item(self, test_item):
         found_test_metadata = False
@@ -415,7 +429,14 @@ class Build(Forceable):
         if self.args.source_dir:
             source_dir = self.args.source_dir
         elif self.cmake_cache:
-            source_dir = self.cmake_cache.get('CMAKE_HOME_DIRECTORY')
+            source_dir = self.cmake_cache.get('APP_DIR')
+
+            if not source_dir:
+                source_dir = self.cmake_cache.get('APPLICATION_SOURCE_DIR')
+
+            if not source_dir:
+                source_dir = self.cmake_cache.get('CMAKE_HOME_DIRECTORY')
+
             if not source_dir:
                 # This really ought to be there. The build directory
                 # must be corrupted somehow. Let's see what we can do.
@@ -552,12 +573,31 @@ class Build(Forceable):
             cmake_opts.extend(self.args.cmake_opts)
         if self.args.snippets:
             cmake_opts.append(f'-DSNIPPET={";".join(self.args.snippets)}')
+        if self.args.shields:
+            cmake_opts.append(f'-DSHIELD={";".join(self.args.shields)}')
 
         user_args = config_get('cmake-args', None)
         if user_args:
             cmake_opts.extend(shlex.split(user_args))
 
-        config_sysbuild = config_getboolean('sysbuild', False)
+        config_sysbuild = config_getboolean('sysbuild', None)
+
+        if config_sysbuild is None:
+            # Check if this is an ncs-repo directory
+            allow_list = [ 'mcuboot', 'sidewalk', 'find-my', 'nrf', 'matter', 'suit-processor',
+                           'memfault-firmware-sdk', 'zscilib', 'uoscore-uedhoc', 'zcbor',
+                           'hal_nordic', 'ncs-example-application', 'ant' ]
+            config_sysbuild = False
+
+            for module in zephyr_module.parse_modules(ZEPHYR_BASE, self.manifest):
+                if module.meta['name'] in allow_list and Path(self.source_dir).is_relative_to(module.project):
+                    config_sysbuild = True
+                    break
+
+            if config_sysbuild is False and Path(self.source_dir).is_relative_to(ZEPHYR_BASE):
+                config_sysbuild = True
+
+
         if self.args.sysbuild or (config_sysbuild and not self.args.no_sysbuild):
             cmake_opts.extend(['-S{}'.format(SYSBUILD_PROJ_DIR),
                                '-DAPP_DIR:PATH={}'.format(self.source_dir)])

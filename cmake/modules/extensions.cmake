@@ -37,6 +37,7 @@ include(CheckCXXCompilerFlag)
 # 7 Linkable loadable extensions (llext)
 # 7.1 llext_* configuration functions
 # 7.2 add_llext_* build control functions
+# 7.3 llext helper functions
 
 ########################################################
 # 1. Zephyr-aware extensions
@@ -1759,9 +1760,11 @@ function(zephyr_blobs_verify)
 
       message(VERBOSE "Verifying blob \"${path}\"")
 
-      # Each path that has a correct sha256 is prefixed with an A
-      if(NOT "A ${path}" IN_LIST BLOBS_LIST)
-        message(${msg_lvl} "Blob for path \"${path}\" isn't valid.")
+      if(NOT EXISTS "${path}")
+        message(${msg_lvl} "Blob for path \"${path}\" missing. Update with: west blobs fetch")
+      elseif(NOT "A ${path}" IN_LIST BLOBS_LIST)
+        # Each path that has a correct sha256 is prefixed with an A
+        message(${msg_lvl} "Blob for path \"${path}\" isn't valid. Update with: west blobs fetch")
       endif()
     endforeach()
   else()
@@ -1772,7 +1775,9 @@ function(zephyr_blobs_verify)
 
       message(VERBOSE "Verifying blob \"${path}\"")
 
-      if(NOT "${status}" STREQUAL "A")
+      if(NOT EXISTS "${path}")
+        message(${msg_lvl} "Blob for path \"${path}\" missing. Update with: west blobs fetch ${BLOBS_VERIFY_MODULE}")
+      elseif(NOT "${status}" STREQUAL "A")
         message(${msg_lvl} "Blob for path \"${path}\" isn't valid. Update with: west blobs fetch ${BLOBS_VERIFY_MODULE}")
       endif()
     endforeach()
@@ -2331,16 +2336,12 @@ function(toolchain_parse_make_rule input_file include_files)
   # the element separator, so let's get the pure `;` back.
   string(REPLACE "\;" ";" input_as_list ${input})
 
-  # Pop the first line and treat it specially
-  list(POP_FRONT input_as_list first_input_line)
-  string(FIND ${first_input_line} ": " index)
-  math(EXPR j "${index} + 2")
-  string(SUBSTRING ${first_input_line} ${j} -1 first_include_file)
+  # The file might also contain multiple files on one line if one or both of
+  # the file paths are short, split these up into multiple elements using regex
+  string(REGEX REPLACE "([^ ])[ ]([^ ])" "\\1;\\2" input_as_list "${input_as_list}")
 
-  # Remove whitespace before and after filename and convert to CMake path.
-  string(STRIP "${first_include_file}" first_include_file)
-  file(TO_CMAKE_PATH "${first_include_file}" first_include_file)
-  set(result "${first_include_file}")
+  # Pop the first item containing "empty_file.o:"
+  list(POP_FRONT input_as_list first_input_line)
 
   # Remove whitespace before and after filename and convert to CMake path.
   foreach(file ${input_as_list})
@@ -2533,6 +2534,8 @@ endfunction()
 #                          to absolute path, relative from `APPLICATION_SOURCE_DIR`
 #                          Issue an error for any relative path not specified
 #                          by user with `-D<path>`
+#                          BASE_DIR <base-dir>: convert paths relative to <base-dir>
+#                                               instead of `APPLICATION_SOURCE_DIR`
 #
 # returns an updated list of absolute paths
 #
@@ -2586,7 +2589,7 @@ Please provide one of following: APPLICATION_ROOT, CONF_FILES")
   endif()
 
   if(${ARGV0} STREQUAL APPLICATION_ROOT)
-    set(single_args APPLICATION_ROOT)
+    set(single_args APPLICATION_ROOT BASE_DIR)
   elseif(${ARGV0} STREQUAL CONF_FILES)
     set(options QUALIFIERS REQUIRED)
     set(single_args BOARD BOARD_REVISION BOARD_QUALIFIERS DTS KCONF DEFCONFIG BUILD SUFFIX)
@@ -2599,6 +2602,10 @@ Please provide one of following: APPLICATION_ROOT, CONF_FILES")
   endif()
 
   if(ZFILE_APPLICATION_ROOT)
+    if(NOT DEFINED ZFILE_BASE_DIR)
+      set(ZFILE_BASE_DIR ${APPLICATION_SOURCE_DIR})
+    endif()
+
     # Note: user can do: `-D<var>=<relative-path>` and app can at same
     # time specify `list(APPEND <var> <abs-path>)`
     # Thus need to check and update only CACHED variables (-D<var>).
@@ -2608,11 +2615,11 @@ Please provide one of following: APPLICATION_ROOT, CONF_FILES")
       # `set(<var> CACHE)`, so let's update current scope variable to absolute
       # path from  `APPLICATION_SOURCE_DIR`.
       if(NOT IS_ABSOLUTE ${path})
-        set(abs_path ${APPLICATION_SOURCE_DIR}/${path})
         list(FIND ${ZFILE_APPLICATION_ROOT} ${path} index)
+        cmake_path(ABSOLUTE_PATH path BASE_DIRECTORY ${ZFILE_BASE_DIR} NORMALIZE)
         if(NOT ${index} LESS 0)
           list(REMOVE_AT ${ZFILE_APPLICATION_ROOT} ${index})
-          list(INSERT ${ZFILE_APPLICATION_ROOT} ${index} ${abs_path})
+          list(INSERT ${ZFILE_APPLICATION_ROOT} ${index} ${path})
         endif()
       endif()
     endforeach()
@@ -2629,6 +2636,7 @@ Relative paths are only allowed with `-D${ARGV1}=<path>`")
       endif()
     endforeach()
 
+    list(REMOVE_DUPLICATES ${ZFILE_APPLICATION_ROOT})
     # This updates the provided argument in parent scope (callers scope)
     set(${ZFILE_APPLICATION_ROOT} ${${ZFILE_APPLICATION_ROOT}} PARENT_SCOPE)
   endif()
@@ -5267,13 +5275,14 @@ endfunction()
 # Usage:
 #   add_llext_target(<target_name>
 #                    OUTPUT  <output_file>
-#                    SOURCES <source_file>
+#                    SOURCES <source_files>
 #   )
 #
-# Add a custom target that compiles a single source file to a .llext file.
+# Add a custom target that compiles a set of source files to a .llext file.
 #
 # Output and source files must be specified using the OUTPUT and SOURCES
-# arguments. Only one source file is currently supported.
+# arguments. Only one source file is supported when LLEXT_TYPE_ELF_OBJECT is
+# selected, since there is no linking step in that case.
 #
 # The llext code will be compiled with mostly the same C compiler flags used
 # in the Zephyr build, but with some important modifications. The list of
@@ -5310,44 +5319,55 @@ function(add_llext_target target_name)
   # Source and output files must be provided
   zephyr_check_arguments_required_all("add_llext_target" LLEXT OUTPUT SOURCES)
 
-  # Source list length must currently be 1
   list(LENGTH LLEXT_SOURCES source_count)
-  if(NOT source_count EQUAL 1)
-    message(FATAL_ERROR "add_llext_target: only one source file is supported")
+  if(CONFIG_LLEXT_TYPE_ELF_OBJECT AND NOT (source_count EQUAL 1))
+    message(FATAL_ERROR "add_llext_target: only one source file is supported "
+                        "for ELF object file builds")
   endif()
 
   set(llext_pkg_output ${LLEXT_OUTPUT})
-  set(source_file ${LLEXT_SOURCES})
+  set(source_files ${LLEXT_SOURCES})
 
-  # Convert the LLEXT_REMOVE_FLAGS list to a regular expression, and use it to
-  # filter out these flags from the Zephyr target settings
-  list(TRANSFORM LLEXT_REMOVE_FLAGS
-       REPLACE "(.+)" "^\\1$"
-       OUTPUT_VARIABLE llext_remove_flags_regexp
-  )
-  string(REPLACE ";" "|" llext_remove_flags_regexp "${llext_remove_flags_regexp}")
   set(zephyr_flags
       "$<TARGET_PROPERTY:zephyr_interface,INTERFACE_COMPILE_OPTIONS>"
   )
-  set(zephyr_filtered_flags
-      "$<FILTER:${zephyr_flags},EXCLUDE,${llext_remove_flags_regexp}>"
-  )
+  llext_filter_zephyr_flags(LLEXT_REMOVE_FLAGS ${zephyr_flags}
+      zephyr_filtered_flags)
 
   # Compile the source file using current Zephyr settings but a different
-  # set of flags.
-  # This is currently arch-specific since the ARM loader for .llext files
-  # expects object file format, while the Xtensa one uses shared libraries.
+  # set of flags to obtain the desired llext object type.
   set(llext_lib_target ${target_name}_llext_lib)
-  if(CONFIG_ARM)
+  if(CONFIG_LLEXT_TYPE_ELF_OBJECT)
 
     # Create an object library to compile the source file
-    add_library(${llext_lib_target} OBJECT ${source_file})
+    add_library(${llext_lib_target} OBJECT ${source_files})
     set(llext_lib_output $<TARGET_OBJECTS:${llext_lib_target}>)
 
-  elseif(CONFIG_XTENSA)
+  elseif(CONFIG_LLEXT_TYPE_ELF_RELOCATABLE)
+
+    # CMake does not directly support a "RELOCATABLE" library target.
+    # The "SHARED" target would be similar, but that unavoidably adds
+    # a "-shared" flag to the linker command line which does firmly
+    # conflict with "-r".
+    # A workaround is to use an executable target and make the linker
+    # output a relocatable file. The output file suffix is changed so
+    # the result looks like the object file it actually is.
+    add_executable(${llext_lib_target} EXCLUDE_FROM_ALL ${source_files})
+    target_link_options(${llext_lib_target} PRIVATE
+      $<TARGET_PROPERTY:linker,partial_linking>)
+    set_target_properties(${llext_lib_target} PROPERTIES
+      SUFFIX ${CMAKE_C_OUTPUT_EXTENSION})
+    set(llext_lib_output $<TARGET_FILE:${llext_lib_target}>)
+
+    # Add the llext flags to the linking step as well
+    target_link_options(${llext_lib_target} PRIVATE
+      ${LLEXT_APPEND_FLAGS}
+    )
+
+  elseif(CONFIG_LLEXT_TYPE_ELF_SHAREDLIB)
 
     # Create a shared library
-    add_library(${llext_lib_target} SHARED ${source_file})
+    add_library(${llext_lib_target} SHARED ${source_files})
     set(llext_lib_output $<TARGET_FILE:${llext_lib_target}>)
 
     # Add the llext flags to the linking step as well
@@ -5396,8 +5416,8 @@ function(add_llext_target target_name)
     COMMAND_EXPAND_LISTS
   )
 
-  # Arch-specific packaging of the built binary file into an .llext file
-  if(CONFIG_ARM)
+  # Type-specific packaging of the built binary file into an .llext file
+  if(CONFIG_LLEXT_TYPE_ELF_OBJECT)
 
     # No packaging required, simply copy the object file
     add_custom_command(
@@ -5406,7 +5426,22 @@ function(add_llext_target target_name)
       DEPENDS ${llext_proc_target} ${llext_pkg_input}
     )
 
-  elseif(CONFIG_XTENSA)
+  elseif(CONFIG_LLEXT_TYPE_ELF_RELOCATABLE)
+
+    # Need to remove just some sections from the relocatable object
+    # (using strip in this case would remove _all_ symbols)
+    add_custom_command(
+      OUTPUT ${llext_pkg_output}
+      COMMAND $<TARGET_PROPERTY:bintools,elfconvert_command>
+              $<TARGET_PROPERTY:bintools,elfconvert_flag>
+              $<TARGET_PROPERTY:bintools,elfconvert_flag_section_remove>.xt.*
+              $<TARGET_PROPERTY:bintools,elfconvert_flag_infile>${llext_pkg_input}
+              $<TARGET_PROPERTY:bintools,elfconvert_flag_outfile>${llext_pkg_output}
+              $<TARGET_PROPERTY:bintools,elfconvert_flag_final>
+      DEPENDS ${llext_proc_target} ${llext_pkg_input}
+    )
+
+  elseif(CONFIG_LLEXT_TYPE_ELF_SHAREDLIB)
 
     # Need to strip the shared library of some sections
     add_custom_command(
@@ -5420,8 +5455,6 @@ function(add_llext_target target_name)
       DEPENDS ${llext_proc_target} ${llext_pkg_input}
     )
 
-  else()
-    message(FATAL_ERROR "add_llext_target: unsupported architecture")
   endif()
 
   # Add user-visible target and dependency, and fill in properties
@@ -5449,7 +5482,7 @@ endfunction()
 # the build. The command will be executed at the specified build step and
 # can refer to <target>'s properties for build-specific details.
 #
-# The differrent build steps are:
+# The different build steps are:
 # - PRE_BUILD:  Before the llext code is linked, if the architecture uses
 #               dynamic libraries. This step can access `lib_target` and
 #               its own properties.
@@ -5518,4 +5551,36 @@ function(add_llext_command)
     ${LLEXT_UNPARSED_ARGUMENTS}
     COMMAND_EXPAND_LISTS
   )
+endfunction()
+
+# 7.3 llext helper functions
+
+# Usage:
+#   llext_filter_zephyr_flags(<filter> <flags> <outvar>)
+#
+# Filter out flags from a list of flags. The filter is a list of regular
+# expressions that will be used to exclude flags from the input list.
+#
+# The resulting generator expression will be stored in the variable <outvar>.
+#
+# Example:
+#   llext_filter_zephyr_flags(LLEXT_REMOVE_FLAGS zephyr_flags zephyr_filtered_flags)
+#
+function(llext_filter_zephyr_flags filter flags outvar)
+  list(TRANSFORM ${filter}
+       REPLACE "(.+)" "^\\1$"
+       OUTPUT_VARIABLE llext_remove_flags_regexp
+  )
+  list(JOIN llext_remove_flags_regexp "|" llext_remove_flags_regexp)
+  if ("${llext_remove_flags_regexp}" STREQUAL "")
+    # an empty regexp would match anything, we actually need the opposite
+    # so set it to match empty strings
+    set(llext_remove_flags_regexp "^$")
+  endif()
+
+  set(zephyr_filtered_flags
+      "$<FILTER:${flags},EXCLUDE,${llext_remove_flags_regexp}>"
+  )
+
+  set(${outvar} ${zephyr_filtered_flags} PARENT_SCOPE)
 endfunction()

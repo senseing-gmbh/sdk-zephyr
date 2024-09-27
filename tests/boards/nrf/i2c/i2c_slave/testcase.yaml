@@ -5,8 +5,20 @@ tests:
     harness: ztest
     harness_config:
       fixture: i2c_loopback
+<<<<<<< HEAD
     platform_allow: nrf52840dk/nrf52840 nrf5340dk/nrf5340/cpuapp nrf54l15pdk/nrf54l15/cpuapp
+=======
+    platform_allow:
+      - nrf52840dk/nrf52840
+      - nrf5340dk/nrf5340/cpuapp
+      - nrf54l15pdk/nrf54l15/cpuapp
+      - nrf54h20dk/nrf54h20/cpuapp
+>>>>>>> origin/v3.6.99-ncs2-cetus-1
     integration_platforms:
       - nrf52840dk/nrf52840
       - nrf5340dk/nrf5340/cpuapp
       - nrf54l15pdk/nrf54l15/cpuapp
+<<<<<<< HEAD
+=======
+      - nrf54h20dk/nrf54h20/cpuapp
+>>>>>>> origin/v3.6.99-ncs2-cetus-1

@@ -499,9 +499,6 @@ harness_config: <harness configuration options>
     ordered: <True|False> (default False)
         Check the regular expression strings in orderly or randomly fashion
 
-    repeat: <integer>
-        Number of times to validate the repeated regex expression
-
     record: <recording options> (optional)
       regex: <regular expression> (required)
         The regular expression with named subgroups to match data fields
@@ -1084,6 +1081,10 @@ Fixtures can also be provided via twister command option ``--fixture``, this opt
 can be used multiple times and all given fixtures will be appended as a list. And the
 given fixtures will be assigned to all boards, this means that all boards set by
 current twister command can run those testcases which request the same fixtures.
+
+Some fixtures allow for configuration strings to be appended, separated from the
+fixture name by a ``:``. Only the fixture name is matched against the fixtures
+requested by testcases.
 
 Notes
 +++++

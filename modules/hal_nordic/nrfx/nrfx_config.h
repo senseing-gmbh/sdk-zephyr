@@ -312,6 +312,10 @@
 #define NRFX_RNG_CONFIG_LOG_ENABLED 1
 #endif
 
+#ifdef CONFIG_NRFX_RRAMC
+#define NRFX_RRAMC_ENABLED 1
+#endif
+
 #ifdef CONFIG_NRFX_RTC
 #define NRFX_RTC_ENABLED 1
 #endif
@@ -824,6 +828,12 @@
 #ifdef CONFIG_NRFX_WDT31
 #define NRFX_WDT31_ENABLED 1
 #endif
+#ifdef CONFIG_NRFX_WDT010
+#define NRFX_WDT010_ENABLED 1
+#endif
+#ifdef CONFIG_NRFX_WDT011
+#define NRFX_WDT011_ENABLED 1
+#endif
 #ifdef CONFIG_NRFX_WDT130
 #define NRFX_WDT130_ENABLED 1
 #endif
@@ -1011,6 +1021,8 @@
     #include <nrfx_config_nrf54h20_ppr.h>
 #elif (defined(NRF54L15_XXAA) || defined(NRF54L15_ENGA_XXAA)) && defined(NRF_APPLICATION)
     #include <nrfx_config_nrf54l15_enga_application.h>
+#elif (defined(NRF54L15_XXAA) || defined(NRF54L15_ENGA_XXAA)) && defined(NRF_FLPR)
+    #include <nrfx_config_nrf54l15_enga_flpr.h>
 #elif defined(NRF9120_XXAA) || defined(NRF9160_XXAA)
     #include <nrfx_config_nrf91.h>
 #else
