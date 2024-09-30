@@ -23,15 +23,6 @@
 		zephyr,flash = &mram1x;
 		zephyr,sram = &cpurad_ram0;
 		zephyr,shell-uart = &uart135;
-<<<<<<< HEAD
-		zephyr,bt-hci-ipc = &ipc0;
-		zephyr,entropy = &prng;
-	};
-
-	prng: prng {
-		compatible = "nordic,entropy-prng";
-		status = "okay";
-=======
 		zephyr,ieee802154 = &cpurad_ieee802154;
 		zephyr,bt-hci-ipc = &ipc0;
 		nordic,802154-spinel-ipc = &ipc0;
@@ -44,7 +35,6 @@
 	aliases {
 		ipc-to-cpusys = &cpurad_cpusys_ipc;
 		resetinfo = &cpurad_resetinfo;
->>>>>>> origin/v3.6.99-ncs2-cetus-1
 	};
 };
 
@@ -89,8 +79,6 @@ ipc0: &cpuapp_cpurad_ipc {
 	rx-region = <&cpuapp_cpurad_ipc_shm>;
 	tx-blocks = <32>;
 	rx-blocks = <32>;
-<<<<<<< HEAD
-=======
 };
 
 &cpurad_cpusys_ipc {
@@ -98,7 +86,6 @@ ipc0: &cpuapp_cpurad_ipc {
 	mbox-names = "rx", "tx";
 	tx-region = <&cpurad_cpusys_ipc_shm>;
 	rx-region = <&cpusys_cpurad_ipc_shm>;
->>>>>>> origin/v3.6.99-ncs2-cetus-1
 };
 
 &cpurad_dma_region {

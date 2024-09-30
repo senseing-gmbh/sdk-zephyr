@@ -89,12 +89,9 @@ enum net_request_wifi_cmd {
 	NET_REQUEST_WIFI_CMD_VERSION,
 	/** Set RTS threshold */
 	NET_REQUEST_WIFI_CMD_RTS_THRESHOLD,
-<<<<<<< HEAD
-=======
 	/** Configure AP parameter */
 	NET_REQUEST_WIFI_CMD_AP_CONFIG_PARAM,
 /** @cond INTERNAL_HIDDEN */
->>>>>>> origin/v3.6.99-ncs2-cetus-1
 	NET_REQUEST_WIFI_CMD_MAX
 /** @endcond */
 };
@@ -141,12 +138,8 @@ NET_MGMT_DEFINE_REQUEST_HANDLER(NET_REQUEST_WIFI_IFACE_STATUS);
 
 NET_MGMT_DEFINE_REQUEST_HANDLER(NET_REQUEST_WIFI_PS);
 
-<<<<<<< HEAD
-#define NET_REQUEST_WIFI_TWT			\
-=======
 /** Request a Wi-Fi TWT */
 #define NET_REQUEST_WIFI_TWT					\
->>>>>>> origin/v3.6.99-ncs2-cetus-1
 	(_NET_WIFI_BASE | NET_REQUEST_WIFI_CMD_TWT)
 
 NET_MGMT_DEFINE_REQUEST_HANDLER(NET_REQUEST_WIFI_TWT);
@@ -163,12 +156,8 @@ NET_MGMT_DEFINE_REQUEST_HANDLER(NET_REQUEST_WIFI_PS_CONFIG);
 
 NET_MGMT_DEFINE_REQUEST_HANDLER(NET_REQUEST_WIFI_REG_DOMAIN);
 
-<<<<<<< HEAD
-#define NET_REQUEST_WIFI_MODE				\
-=======
 /** Request current Wi-Fi mode */
 #define NET_REQUEST_WIFI_MODE					\
->>>>>>> origin/v3.6.99-ncs2-cetus-1
 	(_NET_WIFI_BASE | NET_REQUEST_WIFI_CMD_MODE)
 
 NET_MGMT_DEFINE_REQUEST_HANDLER(NET_REQUEST_WIFI_MODE);
@@ -197,13 +186,6 @@ NET_MGMT_DEFINE_REQUEST_HANDLER(NET_REQUEST_WIFI_AP_STA_DISCONNECT);
 
 NET_MGMT_DEFINE_REQUEST_HANDLER(NET_REQUEST_WIFI_VERSION);
 
-<<<<<<< HEAD
-#define NET_REQUEST_WIFI_RTS_THRESHOLD			\
-	(_NET_WIFI_BASE | NET_REQUEST_WIFI_CMD_RTS_THRESHOLD)
-
-NET_MGMT_DEFINE_REQUEST_HANDLER(NET_REQUEST_WIFI_RTS_THRESHOLD);
-/** Wi-Fi management events */
-=======
 /** Request a Wi-Fi RTS threshold */
 #define NET_REQUEST_WIFI_RTS_THRESHOLD				\
 	(_NET_WIFI_BASE | NET_REQUEST_WIFI_CMD_RTS_THRESHOLD)
@@ -217,7 +199,6 @@ NET_MGMT_DEFINE_REQUEST_HANDLER(NET_REQUEST_WIFI_RTS_THRESHOLD);
 NET_MGMT_DEFINE_REQUEST_HANDLER(NET_REQUEST_WIFI_AP_CONFIG_PARAM);
 
 /** @brief Wi-Fi management events */
->>>>>>> origin/v3.6.99-ncs2-cetus-1
 enum net_event_wifi_cmd {
 	/** Scan results available */
 	NET_EVENT_WIFI_CMD_SCAN_RESULT = 1,
@@ -967,9 +948,6 @@ struct wifi_mgmt_ops {
 	 * @return 0 if ok, < 0 if error
 	 */
 	int (*set_rts_threshold)(const struct device *dev, unsigned int rts_threshold);
-<<<<<<< HEAD
-
-=======
 	/** Configure AP parameter
 	 *
 	 * @param dev Pointer to the device structure for the driver instance.
@@ -978,7 +956,6 @@ struct wifi_mgmt_ops {
 	 * @return 0 if ok, < 0 if error
 	 */
 	int (*ap_config_params)(const struct device *dev, struct wifi_ap_config_params *params);
->>>>>>> origin/v3.6.99-ncs2-cetus-1
 };
 
 /** Wi-Fi management offload API */

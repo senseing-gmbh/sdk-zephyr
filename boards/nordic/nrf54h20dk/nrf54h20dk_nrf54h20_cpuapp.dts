@@ -247,13 +247,6 @@ ipc0: &cpuapp_cpurad_ipc {
 	hw-flow-control;
 };
 
-<<<<<<< HEAD
-&pwm120 {
-	status = "okay";
-	pinctrl-0 = <&pwm120_default>;
-	pinctrl-1 = <&pwm120_sleep>;
-	pinctrl-names = "default", "sleep";
-=======
 &gpio6 {
 	status = "okay";
 };
@@ -307,7 +300,6 @@ zephyr_udc0: &usbhs {
 	pinctrl-1 = <&pwm130_sleep>;
 	pinctrl-names = "default", "sleep";
 	memory-regions = <&cpuapp_dma_region>;
->>>>>>> origin/v3.6.99-ncs2-cetus-1
 };
 
 &adc {

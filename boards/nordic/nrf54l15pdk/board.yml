@@ -4,11 +4,8 @@ board:
   socs:
   - name: nrf54l15
     variants:
-<<<<<<< HEAD
-=======
     - name: xip
       cpucluster: cpuflpr
->>>>>>> origin/v3.6.99-ncs2-cetus-1
     - name: ns
       cpucluster: cpuapp
   revision:

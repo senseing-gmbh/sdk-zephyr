@@ -153,12 +153,6 @@ used.
    :file:`prj_<build>.conf`, the result of merging :file:`prj_<build>.conf` and
    :file:`boards/<BOARD>_<build>.conf` is used - note that this feature is
    deprecated, :ref:`application-file-suffixes` should be used instead.
-<<<<<<< HEAD
-
-#. Otherwise, :file:`prj_<BOARD>.conf` is used if it exists in the application
-   configuration directory.
-=======
->>>>>>> origin/v3.6.99-ncs2-cetus-1
 
 #. Otherwise, if :file:`boards/<BOARD>.conf` exists in the application
    configuration directory, the result of merging it with :file:`prj.conf` is

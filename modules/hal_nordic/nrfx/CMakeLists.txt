@@ -145,11 +145,7 @@ endif()
 
 if (CONFIG_NRF_GRTC_TIMER)
 	if (CONFIG_NRF_GRTC_TIMER_CLOCK_MANAGEMENT)
-<<<<<<< HEAD
-	  zephyr_library_compile_definitions(NRF_GRTC_HAS_EXTENDED=1)
-=======
 	  zephyr_compile_definitions(NRF_GRTC_HAS_EXTENDED=1)
->>>>>>> origin/v3.6.99-ncs2-cetus-1
 	endif()
   if (CONFIG_NRF_GRTC_SLEEP_ALLOWED)
     zephyr_compile_definitions(NRFX_GRTC_CONFIG_SLEEP_ALLOWED=1)

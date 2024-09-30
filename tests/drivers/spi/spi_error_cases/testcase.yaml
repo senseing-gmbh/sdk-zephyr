@@ -1,17 +1,3 @@
-<<<<<<< HEAD
-tests:
-  drivers.spi.spi_error_cases:
-    depends_on: spi
-    tags: drivers spi
-    harness: ztest
-    harness_config:
-      fixture: gpio_spi_loopback
-    platform_allow:
-      - nrf52840dk/nrf52840
-      - nrf54l15pdk/nrf54l15/cpuapp
-    integration_platforms:
-      - nrf52840dk/nrf52840
-=======
 common:
   depends_on: spi
   tags: drivers spi
@@ -38,4 +24,3 @@ tests:
       - SB_CONFIG_VPR_LAUNCHER=y
       # Disable asserts to fit in limited code memory
       - CONFIG_ASSERT=n
->>>>>>> origin/v3.6.99-ncs2-cetus-1

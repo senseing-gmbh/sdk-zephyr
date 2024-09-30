@@ -468,12 +468,8 @@ static int sys_clock_driver_init(void)
 	nrfx_grtc_clock_source_set(NRF_GRTC_CLKSEL_LFCLK);
 #endif
 
-<<<<<<< HEAD
-	IRQ_CONNECT(DT_IRQN(GRTC_NODE), DT_IRQ(GRTC_NODE, priority), nrfx_grtc_irq_handler, 0, 0);
-=======
 	IRQ_CONNECT(DT_IRQN(GRTC_NODE), DT_IRQ(GRTC_NODE, priority), nrfx_isr,
 		    nrfx_grtc_irq_handler, 0);
->>>>>>> origin/v3.6.99-ncs2-cetus-1
 
 	err_code = nrfx_grtc_init(0);
 	if (err_code != NRFX_SUCCESS) {

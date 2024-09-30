@@ -39,15 +39,6 @@ if (CONFIG_FAKE_ENTROPY_NRF_PRNG)
 
   message(WARNING "\nA nRF PRNG is used, which does not produce real random bits."
   "This is not secure and should therefore never be used in a product.")
-<<<<<<< HEAD
-endif()
-
-if (CONFIG_BUILD_WITH_TFM)
-  target_include_directories(${ZEPHYR_CURRENT_LIBRARY} PRIVATE
-    $<TARGET_PROPERTY:tfm,TFM_BINARY_DIR>/api_ns/interface/include
-  )
-=======
->>>>>>> origin/v3.6.99-ncs2-cetus-1
 endif()
 
 zephyr_library_link_libraries_ifdef(CONFIG_BUILD_WITH_TFM tfm_api)

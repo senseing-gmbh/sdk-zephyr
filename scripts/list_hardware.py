@@ -11,14 +11,11 @@ import sys
 from typing import List
 import yaml
 import re
-<<<<<<< HEAD
-=======
 
 try:
     from yaml import CSafeLoader as SafeLoader
 except ImportError:
     from yaml import SafeLoader
->>>>>>> origin/v3.6.99-ncs2-cetus-1
 
 
 SOC_SCHEMA_PATH = str(Path(__file__).parent / 'schemas' / 'soc-schema.yml')

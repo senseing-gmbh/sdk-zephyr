@@ -389,11 +389,7 @@ static int api_tx(const struct device *dev, const uint8_t *buf, size_t len, int3
 
 	(void)pm_device_state_get(dev, &state);
 	if (state != PM_DEVICE_STATE_ACTIVE) {
-<<<<<<< HEAD
-		return 0;
-=======
 		return -ECANCELED;
->>>>>>> origin/v3.6.99-ncs2-cetus-1
 	}
 #endif
 

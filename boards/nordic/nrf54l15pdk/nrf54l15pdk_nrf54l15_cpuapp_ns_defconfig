@@ -27,14 +27,5 @@ CONFIG_SERIAL=y
 # Enable GPIO
 CONFIG_GPIO=y
 
-<<<<<<< HEAD
-# NCSDK-26634: Rollback protection is not supported yet
-CONFIG_TFM_PS_ROLLBACK_PROTECTION=n
-
-# NCSDK-22600: Built-in keys are not supported yet.
-CONFIG_TFM_CRYPTO_BUILTIN_KEYS=n
-
-=======
->>>>>>> origin/v3.6.99-ncs2-cetus-1
 # Start SYSCOUNTER on driver init
 CONFIG_NRF_GRTC_START_SYSCOUNTER=y

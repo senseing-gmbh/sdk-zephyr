@@ -26,8 +26,6 @@
 #endif
 #define RAMABLE_REGION RAM
 
-<<<<<<< HEAD
-=======
 /* Region of the irq vectors and boot-vector SP/PC */
 #if defined(CONFIG_ROMSTART_RELOCATION_ROM)
 #define ROMSTART_ADDR CONFIG_ROMSTART_REGION_ADDRESS
@@ -36,7 +34,6 @@
 #define ROMSTART_REGION ROMABLE_REGION
 #endif
 
->>>>>>> origin/v3.6.99-ncs2-cetus-1
 #if USE_PARTITION_MANAGER
 
 #include <pm_config.h>

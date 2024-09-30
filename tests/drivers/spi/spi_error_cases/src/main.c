@@ -8,10 +8,7 @@
 #include <string.h>
 #include <zephyr/kernel.h>
 #include <zephyr/drivers/spi.h>
-<<<<<<< HEAD
-=======
 #include <zephyr/linker/devicetree_regions.h>
->>>>>>> origin/v3.6.99-ncs2-cetus-1
 #include <zephyr/ztest.h>
 
 #define SPI_MODE (SPI_MODE_CPOL | SPI_WORD_SET(8) | SPI_LINES_SINGLE)
@@ -19,14 +16,10 @@
 #define SPIS_OP	 (SPI_OP_MODE_SLAVE | SPI_MODE)
 
 static struct spi_dt_spec spim = SPI_DT_SPEC_GET(DT_NODELABEL(dut_spi_dt), SPIM_OP, 0);
-<<<<<<< HEAD
-static struct spi_dt_spec spis = SPI_DT_SPEC_GET(DT_NODELABEL(dut_spis_dt), SPIS_OP, 0);
-=======
 static const struct device *spis_dev = DEVICE_DT_GET(DT_NODELABEL(dut_spis));
 static const struct spi_config spis_config = {
 	.operation = SPIS_OP
 };
->>>>>>> origin/v3.6.99-ncs2-cetus-1
 
 #define MEMORY_SECTION(node)                                                                       \
 	COND_CODE_1(DT_NODE_HAS_PROP(node, memory_regions),                                        \
@@ -34,11 +27,7 @@ static const struct spi_config spis_config = {
 			    LINKER_DT_NODE_REGION_NAME(DT_PHANDLE(node, memory_regions)))))),      \
 		    ())
 
-<<<<<<< HEAD
-static uint8_t spim_buffer[32] MEMORY_SECTION(DT_NODELABEL(dut_spi));
-=======
 static uint8_t spim_buffer[32] MEMORY_SECTION(DT_BUS(DT_NODELABEL(dut_spi_dt)));
->>>>>>> origin/v3.6.99-ncs2-cetus-1
 static uint8_t spis_buffer[32] MEMORY_SECTION(DT_NODELABEL(dut_spis));
 
 struct test_data {
@@ -79,16 +68,6 @@ ZTEST(spi_error_cases, test_SPI_HALF_DUPLEX_not_supported)
 	int rv;
 	int slave_rv;
 	struct spi_dt_spec spim_invalid = spim;
-<<<<<<< HEAD
-	struct spi_dt_spec spis_invalid = spis;
-
-	spim_invalid.config.operation |= SPI_HALF_DUPLEX;
-	spis_invalid.config.operation |= SPI_HALF_DUPLEX;
-
-	rv = spi_transceive_dt(&spim_invalid, tdata.stx_set, tdata.srx_set);
-	zassert_equal(rv, -ENOTSUP, "Got %d instead", rv);
-	slave_rv = spi_transceive_dt(&spis_invalid, tdata.stx_set, tdata.srx_set);
-=======
 	struct spi_config spis_config_invalid = spis_config;
 
 	spim_invalid.config.operation |= SPI_HALF_DUPLEX;
@@ -97,7 +76,6 @@ ZTEST(spi_error_cases, test_SPI_HALF_DUPLEX_not_supported)
 	rv = spi_transceive_dt(&spim_invalid, tdata.stx_set, tdata.srx_set);
 	zassert_equal(rv, -ENOTSUP, "Got %d instead", rv);
 	slave_rv = spi_transceive(spis_dev, &spis_config_invalid, tdata.stx_set, tdata.srx_set);
->>>>>>> origin/v3.6.99-ncs2-cetus-1
 	zassert_equal(slave_rv, -ENOTSUP, "Got %d instead", slave_rv);
 }
 
@@ -106,27 +84,16 @@ ZTEST(spi_error_cases, test_SPI_OP_MODE_invalid)
 	int rv;
 	int slave_rv;
 	struct spi_dt_spec spim_invalid = spim;
-<<<<<<< HEAD
-	struct spi_dt_spec spis_invalid = spis;
-
-	spim_invalid.config.operation |= SPI_OP_MODE_SLAVE;
-	spis_invalid.config.operation &= !SPI_OP_MODE_SLAVE;
-=======
 	struct spi_config spis_config_invalid = spis_config;
 
 	spim_invalid.config.operation |= SPI_OP_MODE_SLAVE;
 	spis_config_invalid.operation &= !SPI_OP_MODE_SLAVE;
->>>>>>> origin/v3.6.99-ncs2-cetus-1
 
 	/* Check that Operation Mode Slave on spim is not supported */
 	rv = spi_transceive_dt(&spim_invalid, tdata.stx_set, tdata.srx_set);
 	zassert_equal(rv, -EINVAL, "Got %d instead", rv);
 	/* Check that Operation Mode Master on spis is not supported */
-<<<<<<< HEAD
-	slave_rv = spi_transceive_dt(&spis_invalid, tdata.stx_set, tdata.srx_set);
-=======
 	slave_rv = spi_transceive(spis_dev, &spis_config_invalid, tdata.stx_set, tdata.srx_set);
->>>>>>> origin/v3.6.99-ncs2-cetus-1
 	zassert_equal(slave_rv, -EINVAL, "Got %d instead", slave_rv);
 }
 
@@ -135,16 +102,6 @@ ZTEST(spi_error_cases, test_SPI_MODE_LOOP_not_supported)
 	int rv;
 	int slave_rv;
 	struct spi_dt_spec spim_invalid = spim;
-<<<<<<< HEAD
-	struct spi_dt_spec spis_invalid = spis;
-
-	spim_invalid.config.operation |= SPI_MODE_LOOP;
-	spis_invalid.config.operation |= SPI_MODE_LOOP;
-
-	rv = spi_transceive_dt(&spim_invalid, tdata.stx_set, tdata.srx_set);
-	zassert_equal(rv, -EINVAL, "Got %d instead", rv);
-	slave_rv = spi_transceive_dt(&spis_invalid, tdata.stx_set, tdata.srx_set);
-=======
 	struct spi_config spis_config_invalid = spis_config;
 
 	spim_invalid.config.operation |= SPI_MODE_LOOP;
@@ -153,7 +110,6 @@ ZTEST(spi_error_cases, test_SPI_MODE_LOOP_not_supported)
 	rv = spi_transceive_dt(&spim_invalid, tdata.stx_set, tdata.srx_set);
 	zassert_equal(rv, -EINVAL, "Got %d instead", rv);
 	slave_rv = spi_transceive(spis_dev, &spis_config_invalid, tdata.stx_set, tdata.srx_set);
->>>>>>> origin/v3.6.99-ncs2-cetus-1
 	zassert_equal(slave_rv, -EINVAL, "Got %d instead", slave_rv);
 }
 
@@ -162,36 +118,6 @@ ZTEST(spi_error_cases, test_only_SPI_LINES_SINGLE_supported)
 	int rv;
 	int slave_rv;
 	struct spi_dt_spec spim_invalid = spim;
-<<<<<<< HEAD
-	struct spi_dt_spec spis_invalid = spis;
-
-	spim_invalid.config.operation |= SPI_LINES_DUAL;
-	spis_invalid.config.operation |= SPI_LINES_DUAL;
-
-	rv = spi_transceive_dt(&spim_invalid, tdata.stx_set, tdata.srx_set);
-	zassert_equal(rv, -EINVAL, "Got %d instead", rv);
-	slave_rv = spi_transceive_dt(&spis_invalid, tdata.stx_set, tdata.srx_set);
-	zassert_equal(slave_rv, -EINVAL, "Got %d instead", slave_rv);
-
-	spim_invalid = spim;
-	spis_invalid = spis;
-	spim_invalid.config.operation |= SPI_LINES_QUAD;
-	spis_invalid.config.operation |= SPI_LINES_QUAD;
-
-	rv = spi_transceive_dt(&spim_invalid, tdata.stx_set, tdata.srx_set);
-	zassert_equal(rv, -EINVAL, "Got %d instead", rv);
-	slave_rv = spi_transceive_dt(&spis_invalid, tdata.stx_set, tdata.srx_set);
-	zassert_equal(slave_rv, -EINVAL, "Got %d instead", slave_rv);
-
-	spim_invalid = spim;
-	spis_invalid = spis;
-	spim_invalid.config.operation |= SPI_LINES_OCTAL;
-	spis_invalid.config.operation |= SPI_LINES_OCTAL;
-
-	rv = spi_transceive_dt(&spim_invalid, tdata.stx_set, tdata.srx_set);
-	zassert_equal(rv, -EINVAL, "Got %d instead", rv);
-	slave_rv = spi_transceive_dt(&spis_invalid, tdata.stx_set, tdata.srx_set);
-=======
 	struct spi_config spis_config_invalid = spis_config;
 
 	spim_invalid.config.operation |= SPI_LINES_DUAL;
@@ -220,7 +146,6 @@ ZTEST(spi_error_cases, test_only_SPI_LINES_SINGLE_supported)
 	rv = spi_transceive_dt(&spim_invalid, tdata.stx_set, tdata.srx_set);
 	zassert_equal(rv, -EINVAL, "Got %d instead", rv);
 	slave_rv = spi_transceive(spis_dev, &spis_config_invalid, tdata.stx_set, tdata.srx_set);
->>>>>>> origin/v3.6.99-ncs2-cetus-1
 	zassert_equal(slave_rv, -EINVAL, "Got %d instead", slave_rv);
 }
 
@@ -229,16 +154,6 @@ ZTEST(spi_error_cases, test_only_8BIT_supported)
 	int rv;
 	int slave_rv;
 	struct spi_dt_spec spim_invalid = spim;
-<<<<<<< HEAD
-	struct spi_dt_spec spis_invalid = spis;
-
-	spim_invalid.config.operation |= SPI_WORD_SET(16);
-	spis_invalid.config.operation |= SPI_WORD_SET(16);
-
-	rv = spi_transceive_dt(&spim_invalid, tdata.stx_set, tdata.srx_set);
-	zassert_equal(rv, -EINVAL, "Got %d instead", rv);
-	slave_rv = spi_transceive_dt(&spis_invalid, tdata.stx_set, tdata.srx_set);
-=======
 	struct spi_config spis_config_invalid = spis_config;
 
 	spim_invalid.config.operation |= SPI_WORD_SET(16);
@@ -247,7 +162,6 @@ ZTEST(spi_error_cases, test_only_8BIT_supported)
 	rv = spi_transceive_dt(&spim_invalid, tdata.stx_set, tdata.srx_set);
 	zassert_equal(rv, -EINVAL, "Got %d instead", rv);
 	slave_rv = spi_transceive(spis_dev, &spis_config_invalid, tdata.stx_set, tdata.srx_set);
->>>>>>> origin/v3.6.99-ncs2-cetus-1
 	zassert_equal(slave_rv, -EINVAL, "Got %d instead", slave_rv);
 }
 
@@ -262,31 +176,12 @@ ZTEST(spi_error_cases, test_unsupported_frequency)
 	zassert_equal(rv, -EINVAL, "Got %d instead", rv);
 }
 
-<<<<<<< HEAD
-ZTEST(spi_error_cases, test_CS_unsupported_on_slave)
-{
-	int slave_rv;
-	struct spi_dt_spec spis_invalid = spis;
-	struct gpio_dt_spec test_gpio = { DEVICE_DT_GET(DT_NODELABEL(gpio1)), 10, GPIO_ACTIVE_LOW };
-
-	spis_invalid.config.cs.gpio = test_gpio;
-
-	slave_rv = spi_transceive_dt(&spis_invalid, tdata.stx_set, tdata.srx_set);
-	zassert_equal(slave_rv, -EINVAL, "Got %d instead", slave_rv);
-}
-
-=======
->>>>>>> origin/v3.6.99-ncs2-cetus-1
 ZTEST(spi_error_cases, test_spis_scattered_tx_buf_not_supported)
 {
 	int slave_rv;
 
 	tdata.sets[2].count = 2;
-<<<<<<< HEAD
-	slave_rv = spi_transceive_dt(&spis, tdata.stx_set, tdata.srx_set);
-=======
 	slave_rv = spi_transceive(spis_dev, &spis_config, tdata.stx_set, tdata.srx_set);
->>>>>>> origin/v3.6.99-ncs2-cetus-1
 	zassert_equal(slave_rv, -ENOTSUP, "Got %d instead", slave_rv);
 }
 
@@ -295,11 +190,7 @@ ZTEST(spi_error_cases, test_spis_scattered_rx_buf_not_supported)
 	int slave_rv;
 
 	tdata.sets[3].count = 2;
-<<<<<<< HEAD
-	slave_rv = spi_transceive_dt(&spis, tdata.stx_set, tdata.srx_set);
-=======
 	slave_rv = spi_transceive(spis_dev, &spis_config, tdata.stx_set, tdata.srx_set);
->>>>>>> origin/v3.6.99-ncs2-cetus-1
 	zassert_equal(slave_rv, -ENOTSUP, "Got %d instead", slave_rv);
 }
 
@@ -308,11 +199,7 @@ ZTEST(spi_error_cases, test_spis_tx_buf_too_big)
 	int slave_rv;
 
 	tdata.bufs[2].len = (size_t)65536;
-<<<<<<< HEAD
-	slave_rv = spi_transceive_dt(&spis, tdata.stx_set, tdata.srx_set);
-=======
 	slave_rv = spi_transceive(spis_dev, &spis_config, tdata.stx_set, tdata.srx_set);
->>>>>>> origin/v3.6.99-ncs2-cetus-1
 	zassert_equal(slave_rv, -EINVAL, "Got %d instead", slave_rv);
 }
 
@@ -321,11 +208,7 @@ ZTEST(spi_error_cases, test_spis_rx_buf_too_big)
 	int slave_rv;
 
 	tdata.bufs[3].len = (size_t)65536;
-<<<<<<< HEAD
-	slave_rv = spi_transceive_dt(&spis, tdata.stx_set, tdata.srx_set);
-=======
 	slave_rv = spi_transceive(spis_dev, &spis_config, tdata.stx_set, tdata.srx_set);
->>>>>>> origin/v3.6.99-ncs2-cetus-1
 	zassert_equal(slave_rv, -EINVAL, "Got %d instead", slave_rv);
 }
 
@@ -334,11 +217,7 @@ ZTEST(spi_error_cases, test_spis_tx_buf_not_in_ram)
 	int slave_rv;
 
 	tdata.bufs[2].buf = (void *)0x12345678;
-<<<<<<< HEAD
-	slave_rv = spi_transceive_dt(&spis, tdata.stx_set, tdata.srx_set);
-=======
 	slave_rv = spi_transceive(spis_dev, &spis_config, tdata.stx_set, tdata.srx_set);
->>>>>>> origin/v3.6.99-ncs2-cetus-1
 	zassert_equal(slave_rv, -ENOTSUP, "Got %d instead", slave_rv);
 }
 

@@ -31,10 +31,7 @@
 #include <zephyr/net/socket_poll.h>
 #include <zephyr/sys/iterable_sections.h>
 #include <zephyr/sys/fdtable.h>
-<<<<<<< HEAD
-=======
 #include <zephyr/net/dns_resolve.h>
->>>>>>> origin/v3.6.99-ncs2-cetus-1
 #include <zephyr/net/socket_ncs.h>
 #include <stdlib.h>
 

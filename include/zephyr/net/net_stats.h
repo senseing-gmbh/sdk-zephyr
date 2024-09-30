@@ -618,11 +618,8 @@ struct net_stats_wifi {
 
 	/** Total number of errors in RX and TX */
 	struct net_stats_pkts errors;
-<<<<<<< HEAD
-=======
 
 	/** Total number of unicast packets received and sent */
->>>>>>> origin/v3.6.99-ncs2-cetus-1
 	struct net_stats_pkts unicast;
 };
 

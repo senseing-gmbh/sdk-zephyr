@@ -286,8 +286,6 @@ Drivers and Sensors
   * Added support for configuring RTS threshold. With this, users can set the RTS threshold value or
     disable the RTS mechanism.
 
-<<<<<<< HEAD
-=======
   * Added support for configuring AP parameters. With this, users can set AP parameters at
     build and run time.
 
@@ -301,7 +299,6 @@ Drivers and Sensors
   * Added support to configure "max_num_sta" BSS parameter. Users can set this both build and run time
     parameter to control the maximum numuber of STA entries.
 
->>>>>>> origin/v3.6.99-ncs2-cetus-1
 Networking
 **********
 

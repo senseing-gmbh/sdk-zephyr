@@ -4,10 +4,6 @@
 	};
 };
 
-<<<<<<< HEAD
-&mx25r64 {
-	status = "okay";
-=======
 /delete-node/ &boot_partition;
 /delete-node/ &slot0_partition;
 /delete-node/ &slot1_partition;
@@ -47,5 +43,4 @@
 			reg = <0x000000000 0x0015A000>;
 		};
 	};
->>>>>>> origin/v3.6.99-ncs2-cetus-1
 };

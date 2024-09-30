@@ -38,8 +38,6 @@ config NVS_LOOKUP_CACHE_FOR_SETTINGS
 	  is used as the settings backend only. This option should NOT be enabled
 	  if the NVS is also written to directly, outside the settings layer.
 
-<<<<<<< HEAD
-=======
 config NVS_DATA_CRC
 	bool "Non-volatile Storage CRC protection on the data"
 	help
@@ -48,7 +46,6 @@ config NVS_DATA_CRC
 	  The CRC-32 is transparently stored at the end of the data field,
 	  in the NVS data section, so 4 more bytes are needed per NVS element.
 
->>>>>>> origin/v3.6.99-ncs2-cetus-1
 module = NVS
 module-str = nvs
 source "subsys/logging/Kconfig.template.log_config"

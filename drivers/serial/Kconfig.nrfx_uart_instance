@@ -95,11 +95,7 @@ config UART_$(nrfx_uart_num)_TX_CACHE_SIZE
 config UART_$(nrfx_uart_num)_RX_CACHE_SIZE
 	int "RX cache buffer size"
 	depends on !UART_NRFX_UARTE_LEGACY_SHIM
-<<<<<<< HEAD
-	default 32 if $(dt_nodelabel_has_compat,shared_ram3x_region,$(DT_COMPAT_NORDIC_OWNED_MEMORY))
-=======
 	default 32 if UART_$(nrfx_uart_num)_HAS_RX_CACHE_SECTION
->>>>>>> origin/v3.6.99-ncs2-cetus-1
 	default 5
 	range 5 255
 	help

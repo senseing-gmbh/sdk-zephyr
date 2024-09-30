@@ -352,8 +352,6 @@ uint8_t flash_area_erased_val(const struct flash_area *fa);
 #define FIXED_PARTITION_DEVICE(label) \
 	DEVICE_DT_GET(DT_MTD_FROM_FIXED_PARTITION(DT_NODELABEL(label)))
 
-<<<<<<< HEAD
-=======
 /**
  * Get device pointer for device the area/partition resides on
  *
@@ -364,7 +362,6 @@ uint8_t flash_area_erased_val(const struct flash_area *fa);
 #define FIXED_PARTITION_NODE_DEVICE(node) \
 	DEVICE_DT_GET(DT_MTD_FROM_FIXED_PARTITION(node))
 
->>>>>>> origin/v3.6.99-ncs2-cetus-1
 #endif /* USE_PARTITION_MANAGER */
 
 #ifdef __cplusplus

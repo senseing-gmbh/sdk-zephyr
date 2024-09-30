@@ -3,10 +3,7 @@ tests:
     tags: drivers
     platform_allow:
       - nrf54l15pdk/nrf54l15/cpuapp
-<<<<<<< HEAD
-=======
       - nrf54l15pdk/nrf54l15/cpuflpr
->>>>>>> origin/v3.6.99-ncs2-cetus-1
       - nrf54h20dk/nrf54h20/cpuapp
       - nrf54h20dk/nrf54h20/cpurad
       - nrf54h20dk/nrf54h20/cpuppr

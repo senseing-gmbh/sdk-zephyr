@@ -572,8 +572,6 @@ static int __wifi_args_to_params(const struct shell *sh, size_t argc, char *argv
 				&params->bssid[2], &params->bssid[3],
 				&params->bssid[4], &params->bssid[5]);
 			break;
-<<<<<<< HEAD
-=======
 		case 't':
 			if (iface_mode == WIFI_MODE_INFRA) {
 				params->timeout = strtol(optarg, &endptr, 10);
@@ -583,7 +581,6 @@ static int __wifi_args_to_params(const struct shell *sh, size_t argc, char *argv
 				}
 			}
 			break;
->>>>>>> origin/v3.6.99-ncs2-cetus-1
 		case 'h':
 			return -ENOEXEC;
 		default:
@@ -594,8 +591,6 @@ static int __wifi_args_to_params(const struct shell *sh, size_t argc, char *argv
 	if (params->psk && !secure_connection) {
 		PR_WARNING("Passphrase provided without security configuration\n");
 	}
-<<<<<<< HEAD
-=======
 
 	if (!params->ssid) {
 		PR_ERROR("SSID not provided\n");
@@ -606,7 +601,6 @@ static int __wifi_args_to_params(const struct shell *sh, size_t argc, char *argv
 		PR_ERROR("Channel not provided\n");
 		return -EINVAL;
 	}
->>>>>>> origin/v3.6.99-ncs2-cetus-1
 	return 0;
 }
 

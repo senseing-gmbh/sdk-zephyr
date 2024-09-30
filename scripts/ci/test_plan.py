@@ -100,12 +100,8 @@ class Tag:
 
 class Filters:
     def __init__(self, modified_files, ignore_path, alt_tags, testsuite_root,
-<<<<<<< HEAD
-                 pull_request=False, platforms=[], detailed_test_id=True, quarantine_list=None):
-=======
                  pull_request=False, platforms=[], detailed_test_id=True, quarantine_list=None, tc_roots_th=20):
->>>>>>> origin/v3.6.99-ncs2-cetus-1
-        self.modified_files = modified_files
+            self.modified_files = modified_files
         self.testsuite_root = testsuite_root
         self.resolved_files = []
         self.twister_options = []
@@ -118,10 +114,7 @@ class Filters:
         self.ignore_path = ignore_path
         self.tag_cfg_file = alt_tags
         self.quarantine_list = quarantine_list
-<<<<<<< HEAD
-=======
         self.tc_roots_th = tc_roots_th
->>>>>>> origin/v3.6.99-ncs2-cetus-1
 
     def process(self):
         self.find_modules()
@@ -469,12 +462,8 @@ if __name__ == "__main__":
         print("=========")
 
     f = Filters(files, args.ignore_path, args.alt_tags, args.testsuite_root,
-<<<<<<< HEAD
-                args.pull_request, args.platform, args.detailed_test_id, args.quarantine_list)
-=======
                 args.pull_request, args.platform, args.detailed_test_id, args.quarantine_list,
                 args.testcase_roots_threshold)
->>>>>>> origin/v3.6.99-ncs2-cetus-1
     f.process()
 
     # remove dupes and filtered cases

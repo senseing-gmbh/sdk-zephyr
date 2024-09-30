@@ -116,8 +116,6 @@ tests:
       - nrf54l15pdk/nrf54l15/cpuapp
     integration_platforms:
       - nrf54l15pdk/nrf54l15/cpuapp
-<<<<<<< HEAD
-=======
   sample.mcumgr.smp_svr.bt.nrf54l15pdk.ext_flash.pure_dts:
     extra_args:
       - OVERLAY_CONFIG="overlay-bt.conf"
@@ -129,4 +127,3 @@ tests:
       - nrf54l15pdk/nrf54l15/cpuapp
     integration_platforms:
       - nrf54l15pdk/nrf54l15/cpuapp
->>>>>>> origin/v3.6.99-ncs2-cetus-1
